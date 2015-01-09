@@ -1,38 +1,72 @@
-﻿<div class="customers view">
+﻿<div class="requests view">
     <div class="container">
-        <header>
-            <h3>Customers</h3>
-        </header>
-        <div class="row">
-            <div class="span3">
-                First Name:
-                <br />
-                <input data-ng-model="newCustomer.firstName" type="text" placeholder="First Name">
+        
+          <div class="panel panel-default">
+            <div class="panel-body">
+
+              <table class="table table-hover">
+
+                  <thead>
+                      <tr>
+                          <th><a href="#" ng-model="q">Request ID</a></th>
+                          <th>Date Created</th>
+                          <th>Item Description</th>
+                          <th>Status</th>
+                          <th>Date Supplied/Cancelled</th>
+                      </tr>
+                  </thead>  
+                  <tbody>
+                <tr dir-paginate="request in requests | orderBy:'date'| itemsPerPage: pageSize | filter:q" current-page="currentPage">
+                    <td><a href="#/standardview/{{request.id}}" class="btn-link">{{request.id}}</a></td>
+                    <td>{{request.date}}</td>
+                    <td>{{request.itemDescription}}</td>
+                    <td>{{request.status}}</td>
+                    <td>{{request.dateSupplied}}</td>
+                    <td>
+                        <div class="other-options" style="float:right;">
+                        <button class="btn btn-default"  data-ng-click="reorderRequest(request.id)">Reorder</button> 
+                        <button class="btn btn-default " ng-if="request.status === 'New'" data-ng-click="editRequest(request.id)">Edit</button> 
+                        <button class="btn btn-default" ng-if="request.status === 'New'" data-ng-click="deleteRequest(request.id)">Delete</button>
+                        </div>
+                    </td>
+                        
+
+                
+                
+                
+                </tr>
+              </tbody>
+                
+             </table>
             </div>
-            <div class="span3">
-                Last Name:
-                <br />
-                <input data-ng-model="newCustomer.lastName" type="text" placeholder="Last Name">
-            </div>
-            <div class="span6">
-                City:
-                <br />
-                <input data-ng-model="newCustomer.city" type="text" placeholder="Customer City">
-                <button id="submitCustomer" class="btn btn-primary" type="button" 
-                    data-ng-disabled="!newCustomer.firstName || !newCustomer.lastName || !newCustomer.city" 
-                    data-ng-click="insertRequest()">Add Customer</button>
-            </div>
+          </div>        
+        
+        <dir-pagination-controls boundary-links="true" on-page-change="pageChangeHandler(newPageNumber)" template-url="app/directives/pagination/dirPagination.tpl.html"></dir-pagination-controls>
+        <div class="pagination-options" style="display:inline; float:right; margin-top:25px;">
+            <label for="search">items per page:</label>
+            <input type="number" ng-model="pageSize" min="1" max="100" class="form-control" value="2" style="display:inline; width:initial;">  
         </div>
-        <br /><br />
+        
+        
+        
+        
+        
+        
+        <!--
         <div>
             <div class="row cardContainer">
-                <div class="span3 card" data-ng-repeat="customer in customers | orderBy:'lastName'">
-                    <button class="btn close cardClose" data-ng-click="deleteCustomer(customer.id)">&times;</button>
-                    <div class="cardHeader">{{customer.firstName + ' ' + customer.lastName}}</div>
-                    <div class="cardBody">{{customer.city}}</div>
-                    <a href="#/customerorders/{{customer.id}}" class="cardBody btn-link">View {{ customer.orders.length }} Orders</a>
+                <div class="span3 card" data-ng-repeat="request in requests | orderBy:'lastName'">
+                    <button class="btn close cardClose" data-ng-click="deleteRequest(request.id)">&times;</button>
+                    <div class="cardHeader">{{request.firstName + ' ' + request.lastName}}</div>
+                    <div class="cardBody">{{request.city}}</div>
+                    <a href="#/standardview/{{request.id}}" class="cardBody btn-link">View {{ request.orders.length }} Orders</a>
                 </div>
             </div>
         </div>
+        -->
+        
+        
+        
+        
     </div>
 </div>

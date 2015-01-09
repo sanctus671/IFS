@@ -1,22 +1,33 @@
-﻿<div class="customerOrders view">
+﻿<div class="view">
     <div class="container">
         <header>
-            <h3>Customer Orders</h3>
+            <h3>Details for Request {{ request.id}}</h3>
         </header>
         <div>
             <div class="row">
-                <div class="span12">
-                    <div class="indent">
-                        <h4>Orders for {{ customer.firstName + ' ' + customer.lastName }}</h4>
-                        {{customer.address}}
-                        <br />
-                        {{customer.city}}
-                        <br /><br />
-                    </div>
-                </div>                
-                <br /><br />
-
+                ID : {{ request.id}} <br/>
+                Status : {{ request.status}} <br/>
+                Date : {{ request.date}} <br/>
+                Name : {{ request.name}} <br/>
+                Phone : {{ request.phone}} <br/>
+                Email : {{ request.email}} <br/>
+                Chemical Type : {{ request.chemicalType}} <br/>
+                Item Description : {{ request.itemDescription}} <br/>
+                Quality : {{ request.quality}} <br/>
+                Size : {{ request.size}} <br/>
+                Quantity : {{ request.quantity}} <br/>
+                Destination Room : {{ request.destinationRoom}} <br/>
+                Notes : {{ request.notes}}
+                {{ request.id}}
+                {{ request.id}}
+                {{ request.id}}
+                {{ request.id}}
+                {{ request.id}}
+                {{ request.id}}
+                {{ request.id}}
+                
             </div>
+
         </div>
     </div>
 </div>
