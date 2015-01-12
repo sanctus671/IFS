@@ -1,6 +1,22 @@
 ﻿//This handles retrieving data and is used by controllers. 3 options (server, factory, provider) with 
 //each doing the same thing just structuring the functions/data differently.
 app.service('requestsService', function () {
+    
+    var name = "John Doe";
+    var phone = "1234567";
+    var email = "johndoe@massey.ac.nz";
+    var permissions = "standard";
+    
+        
+    this.getUser = function(){
+        return {
+            name:name,
+            phone:phone,
+            email:email,
+            permissions:permissions
+        };
+    };
+    
     this.getRequests = function () {
         return requests;
     };
@@ -10,10 +26,29 @@ app.service('requestsService', function () {
         var topID = requests.length + 1;
         data["id"] = topID;
         data["status"] = "New";
-        data["date"] = "1/1/2015";
-        data["name"] = "John Doe";
-        data["phone"] = "1234567";
-        data["email"] = "johndoe@massey.ac.nz";
+        
+        //get current date in correct format
+        var today = new Date();
+        var dd = today.getDate();
+        var mm = today.getMonth()+1; //January is 0!
+        var yyyy = today.getFullYear();
+
+        if(dd<10) {
+            dd='0'+dd
+        } 
+
+        if(mm<10) {
+            mm='0'+mm
+        } 
+
+        today = dd+'/'+mm+'/'+yyyy;       
+        
+        data["date"] = today;
+        
+
+        data["name"] = name;
+        data["phone"] = phone;
+        data["email"] = email;
         requests.push(data);
     };
     
@@ -50,7 +85,7 @@ app.service('requestsService', function () {
         {
             id: 1, status: 'Completed',date:'20/12/2014', name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
             chemicalType:'Chemical Type',itemDescription: 'Item Description',quality:'Quality',size:'Size', quantity:'Quantity',destinationRoom:'Destination Room',notes:'Notes', 
-            cas:'CAS', chimTag: 'Chim Tag', location:'Location'
+            cas:'CAS', chimTag: 'Chim Tag', location:'Location',dateSupplied:'21/12/2014'
             
         } ,
         {
@@ -62,7 +97,7 @@ app.service('requestsService', function () {
         {
             id: 3, status: 'Completed',date:'22/12/2014', name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
             chemicalType:'Chemical Type',itemDescription: 'Item Description',quality:'Quality',size:'Size', quantity:'Quantity',destinationRoom:'Destination Room',notes:'Notes', 
-            cas:'CAS', chimTag: 'Chim Tag', location:'Location'
+            cas:'CAS', chimTag: 'Chim Tag', location:'Location',dateSupplied:'23/12/2014'
             
         } ,
         {
@@ -124,9 +159,8 @@ app.service('requestsService', function () {
             chemicalType:'Chemical Type', itemDescription: 'Item Description', quality:'Quality',size:'Size', quantity:'Quantity',destinationRoom:'Destination Room',notes:'Notes', 
             cas:'CAS', chimTag: 'Chim Tag', location:'Location'
             
-        },
+        }
 
         
     ];
-
 });

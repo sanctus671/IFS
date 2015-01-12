@@ -23,24 +23,20 @@
     <!-- Collect the nav links, forms, and other content for toggling -->
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1" >
       <ul class="nav navbar-nav nav-tabs">
-        <li class="active"><a href="#/standard">My Orders</a></li>
-        <li ng-controller="ModalCtrl"><a href="#" ng-click="open('lg')">New Request</a></li>
+        <li class="myorders active"><a href="#/standard">My Orders</a></li>
+
 
       </ul>
-
+        <ul class="nav navbar-nav nav-pills">
+        <li ng-controller="ModalCtrl"><a href="#" ng-click="open('lg')">New Request</a></li>    
+        </ul>
       <ul class="nav navbar-nav navbar-right">
           
           
           
           
-        <li><a href="#"><i class="fa fa-filter"></i></a></li>
-        <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-sort"></i><span class="caret"></span></a>
-          <ul class="dropdown-menu" role="menu">
-            <li><a href="#"><i class="fa fa-sort-amount-asc"></i> Ascending</a></li>
-            <li><a href="#"><i class="fa fa-sort-amount-desc"></i> Descending</a></li>
-          </ul>
-        </li>
+        <li ng-controller="ModalCtrl"><a href="#" ng-click="openFilter('lg')"><i class="fa fa-filter"></i></a></li>
+
       </ul>
         
       <form class="navbar-form navbar-right" role="search">
@@ -50,7 +46,9 @@
                 <button class="btn btn-default" type="button"><i class="fa fa-search"></i></button>
             </span>
         </div>
-      </form>        
+      </form> 
+        
+ 
         
     </div><!-- /.navbar-collapse -->
   </div><!-- /.container-fluid -->

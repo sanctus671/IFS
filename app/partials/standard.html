@@ -1,6 +1,5 @@
 ﻿<div class="requests view">
     <div class="container">
-        
           <div class="panel panel-default">
             <div class="panel-body">
 
@@ -8,25 +7,26 @@
 
                   <thead>
                       <tr>
-                          <th><a href="#" ng-model="q">Request ID</a></th>
-                          <th>Date Created</th>
-                          <th>Item Description</th>
-                          <th>Status</th>
-                          <th>Date Supplied/Cancelled</th>
+                          <th><a href="" ng-click="changeOrder('id')">Request ID <span ng-show="orderByField === 'id'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
+                          
+                          <th><a href="" ng-click="changeOrder('date')">Date Created <span ng-show="orderByField === 'date'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
+                          <th><a href="" ng-click="changeOrder('itemDescription')">Item Description <span ng-show="orderByField === 'itemDescription'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
+                          <th><a href="" ng-click="changeOrder('status')">Status <span ng-show="orderByField === 'status'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
+                          <th><a href="" ng-click="changeOrder('dateSupplied')">Date Supplied/Cancelled <span ng-show="orderByField === 'dateSupplied'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
                       </tr>
                   </thead>  
                   <tbody>
-                <tr dir-paginate="request in requests | orderBy:'date'| itemsPerPage: pageSize | filter:q" current-page="currentPage">
+                <tr dir-paginate="request in requests | orderBy:orderByField:sortReverse | itemsPerPage: pageSize | filter:q" current-page="currentPage">
                     <td><a href="#/standardview/{{request.id}}" class="btn-link">{{request.id}}</a></td>
                     <td>{{request.date}}</td>
                     <td>{{request.itemDescription}}</td>
                     <td>{{request.status}}</td>
                     <td>{{request.dateSupplied}}</td>
                     <td>
-                        <div class="other-options" style="float:right;">
+                        <div class="other-options" style="float:right;width: 180px;">
                         <button class="btn btn-default"  data-ng-click="reorderRequest(request.id)">Reorder</button> 
-                        <button class="btn btn-default " ng-if="request.status === 'New'" data-ng-click="editRequest(request.id)">Edit</button> 
-                        <button class="btn btn-default" ng-if="request.status === 'New'" data-ng-click="deleteRequest(request.id)">Delete</button>
+                        <button class="btn btn-default " ng-if="request.status === 'New'" data-ng-click="editRequest(request.id)"><i class="fa fa-pencil-square-o"></i></button> 
+                        <button class="btn btn-default" ng-if="request.status === 'New'" data-ng-click="deleteRequest(request.id)"><i class="fa fa-times"></i></button>
                         </div>
                     </td>
                         
@@ -43,9 +43,14 @@
         
         <dir-pagination-controls boundary-links="true" on-page-change="pageChangeHandler(newPageNumber)" template-url="app/directives/pagination/dirPagination.tpl.html"></dir-pagination-controls>
         <div class="pagination-options" style="display:inline; float:right; margin-top:25px;">
+
             <label for="search">items per page:</label>
-            <input type="number" ng-model="pageSize" min="1" max="100" class="form-control" value="2" style="display:inline; width:initial;">  
+            
+            <input type="number" ng-model="pageSize" min="1" max="100" class="form-control" value="2" style="display:inline; width:initial;"> 
+                        <!--<label for="search" >Requests ordered by:</label> 
+                        {{orderByField}}-->
         </div>
+        
         
         
         

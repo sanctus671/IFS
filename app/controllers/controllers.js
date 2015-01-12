@@ -1,28 +1,63 @@
 
-app.controller('MainController', function ($scope, requestsService) {
+app.controller('MainController', function ($scope, requestsService,$location) {
 
 
     init();
 
     function init() {
         
+        $scope.permissions = requestsService.getUser().permissions;
+        
+        //check we the correct page is loaded based on the users permissions
+        if ($scope.permissions  === 'standard' && $location.path().indexOf("standard") === -1){
+            document.location.href='/#/standard/';
+        }        
+        else if ($scope.permissions  === 'manager' && $location.path().indexOf("manager") === -1){
+            document.location.href='/#/manager/';
+        }
+        else if ($scope.permissions  === 'accountant' && $location.path().indexOf("accountant") === -1){
+            document.location.href='/#/accountant/';
+        }
+        else if ($scope.permissions  === 'admin' && $location.path().indexOf("admin") === -1){
+            $location.path('/admin/');
+        }
+        
+        
         $scope.currentPage = 1;
-        $scope.pageSize = 5;        
+        $scope.pageSize = 10;        
+        $scope.orderByField = "date";
+        $scope.sortReverse = true;
         
         $scope.requests = requestsService.getRequests();
 
       
     }
+    
 
+    
+    $scope.changeOrder = function (header) {
+        $scope.orderByField = header; 
+        $scope.sortReverse = !$scope.sortReverse;
+        console.log($scope.orderByField);
+    };
+    
+    $scope.insertRequest = function () {      
+
+        requestsService.insertRequest($scope.newRequest);
+        $scope.newRequest = {};
+    };
+    
+    
+    
+    
     $scope.reorderRequest = function (id) {
         for (var x in $scope.requests){
             if ($scope.requests[x].id === id){
-                $scope.newRequest.firstName = $scope.requests[x].firstName;
-                $scope.newRequest.lastName = $scope.requests[x].lastName;
-                $scope.newRequest.city = $scope.requests[x].city;                
+                $scope.newRequest = $.extend(true, {}, $scope.requests[x]);
+                $scope.insertRequest();
             }
         }
-    }
+    };
 
 
 
@@ -58,7 +93,14 @@ app.controller('MainViewController', function ($scope, $routeParams, requestsSer
 
             $scope.request = requestsService.getRequest(requestID);
         }
+        if ($('.myorders').length){
+            $('.myorders').removeClass('active'); 
+            $('.myorders').click(function(){
+                $('.myorders').addClass('active'); 
+            });
+        }
     }
+    
 
 });
 
@@ -85,9 +127,52 @@ app.controller('ModalCtrl', function ($scope, $modal, $log) {
     modalInstance.result.then(function (selectedItem) {
       $scope.selected = selectedItem;
     }, function () {
-      $log.info('Modal dismissed at: ' + new Date());
+      //$log.info('Modal dismissed at: ' + new Date());
     });
   };
+  
+  $scope.openFilter = function (size) {
+
+    var modalInstance = $modal.open({
+      templateUrl: '/app/partials/filter.html',
+      controller: 'ModalInstanceCtrl',
+      size: size,
+      resolve: {
+        items: function () {
+          return $scope.items;
+        }
+      }
+    });
+
+    modalInstance.result.then(function (selectedItem) {
+      $scope.selected = selectedItem;
+    }, function () {
+      //$log.info('Modal dismissed at: ' + new Date());
+    });
+  };  
+  
+  $scope.openEdit = function (size) {
+
+    var modalInstance = $modal.open({
+      templateUrl: '/app/partials/edit.html',
+      controller: 'ModalInstanceCtrl',
+      size: size,
+      resolve: {
+        items: function () {
+          return $scope.items;
+        }
+      }
+    });
+
+    modalInstance.result.then(function (selectedItem) {
+      $scope.selected = selectedItem;
+    }, function () {
+      //$log.info('Modal dismissed at: ' + new Date());
+    });
+  };    
+  
+  
+  
 });
 
 
