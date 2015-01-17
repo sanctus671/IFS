@@ -1,0 +1,66 @@
+
+    <div class="modal-content">
+      <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true" ng-click="cancel()">×</button>
+            <h2 style="text-align: center;">Filter Requests</h2>
+      </div>
+    <div class="modal-body">    
+        <form class="form-horizontal" style="margin-left:50px; width:80%;">
+            <div class="form-group">
+                <label for="field">Select field:</label>
+                <select class="form-control" id="feld" ng-model="field">
+                    <option value="supplier">Supplier</option>
+                    <option value="date">Date Created</option>
+                    <option value="dateSupplied">Date Supplied/Cancelled</option>
+                    <option value="status">Status</option>
+                </select>
+            </div>
+            
+            <div class="form-group" ng-show="field.length > 0 && field !== 'date' && field !== 'dateSupplied'">
+                <label for="options1">Options:</label>
+                <select class="form-control" id="options1" ng-model="options1">
+                    <option>Contains</option>
+                    <option>Does not contain</option>
+                </select>
+            </div> 
+            
+            <div class="form-group" ng-show="options1.length > 0 && field !== 'date' && field !== 'dateSupplied'">
+                <label for="value">Value:</label>
+                <input class="form-control" ng-model="value" type="text" id="value"/>
+            </div>             
+            
+            <div class="form-group" ng-show="field.length > 0 && field === 'date' || field === 'dateSupplied'">
+                <label for="options2">Options:</label>
+                <select class="form-control" id="options2" ng-model="options2">
+                    <option>Is between</option>
+                    <option>Is not between</option>
+                    <option>Is after</option>
+                    <option>Is before</option>
+                </select>
+            </div>  
+            
+            <div class="form-group" ng-show="options2.length > 0 && field !== 'supplier' && field !== 'status'">
+                <label for="date1" ng-show="options2 !== 'Is after' && options2 !== 'Is before'  && field !== 'supplier' && field !== 'status'">Start date:</label><label for="date1" ng-show="options2 !== 'Is between' && options2 !== 'Is not between'  && field !== 'supplier' && field !== 'status' ">Date:</label>
+                <input class="form-control" ng-model="date1" type="date" id="date1"/>
+            </div>  
+            
+             
+            
+            <div class="form-group" ng-show="options2.length > 0 && options2 !== 'Is after' && options2 !== 'Is before'  && field !== 'supplier' && field !== 'status'">
+                <label for="date2">End date:</label>
+                <input class="form-control" ng-model="date2" type="date" id="date2"/>
+            </div>             
+        
+        </form>
+
+
+    </div>
+
+        <div class="modal-footer">        
+            <button class="btn btn-primary" type="button" ng-controller="MainController" ng-click="filterRequests(field,options1,options2,value,date1,date2); ok()" ng-disabled="!field || (!options1 && !options2) || (!value && !date1 && !date2)">Filter</button>
+            <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+        </div>
+        
+</div><!-- /.modal-content -->
+
+    

@@ -1,0 +1,84 @@
+﻿<!DOCTYPE html>
+<html data-ng-app="requestsApp">
+<head>
+    <title>IFS Chemical Requests</title>
+    <link rel="stylesheet" href="content/bootstrap.min.css" />
+    <link href="content/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="content/styles.css" />
+</head>
+<body>
+<nav class="navbar navbar-default">
+  <div class="container-fluid">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="#">IFS Chemical Requests</a>
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1" >
+      <ul class="nav navbar-nav nav-tabs">
+        <li class="myorders active"><a href="#/standard"><i class="fa fa-list"></i> My Orders</a></li>
+
+
+      </ul>
+        <ul class="nav navbar-nav nav-pills">
+        <li ng-controller="ModalCtrl"><a href="#" ng-click="open('lg', 0)"><i class="fa fa-file"></i> New Request</a></li>    
+        </ul>
+      <ul class="nav navbar-nav navbar-right">
+          
+          
+          
+          
+        <li ng-controller="ModalCtrl"><button ng-click="openFilter('md')" class="btn btn-default" style="margin-top: 8px;"><i class="fa fa-filter"></i></button></li>
+        <li ng-controller="MainController"><button ng-click="filterRequests()" class="btn btn-default" style="margin-top: 8px;margin-left: 13px;"><i class="fa fa-refresh"></i></button></li>
+      </ul>
+        
+      <form class="navbar-form navbar-right" role="search">
+        <div class="input-group">
+            <input type="text" ng-model="q" class="form-control" placeholder="Search requests...">
+            <span class="input-group-btn">
+                <button class="btn btn-default" type="button"><i class="fa fa-search"></i></button>
+            </span>
+        </div>
+      </form> 
+        
+ 
+        
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+    
+    
+   
+
+
+    <div data-ng-view></div>
+
+
+
+
+    <!-- Vendor Libs: jQuery only used for Bootstrap functionality -->
+    <script src="scripts/angular.js"></script>
+    <script src="scripts/angular-route.js"></script>
+    <script src="scripts/jquery.min.js"></script>
+    <script src="scripts/moment.js"></script>
+
+    <!-- UI Libs -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+
+
+    <!-- App libs -->
+    
+    <script src="app/app.js"></script>
+    <script src="app/controllers/controllers.js"></script>
+    <script src="app/services/requestsservice.js"></script>
+    <script src="app/directives/pagination/dirPagination.js"></script>
+    <script src="app/directives/uibootstrap/ui-bootstrap.js"></script>
+</body>
+</html>
