@@ -2,8 +2,8 @@
 <html data-ng-app="requestsApp">
 <head>
     <title>IFS Chemical Requests</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css" />
-    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="content/bootstrap.min.css" />
+    <link href="content/font-awesome.min.css" rel="stylesheet">
     <link rel="stylesheet" href="content/styles.css" />
 </head>
 <body>
@@ -23,25 +23,25 @@
     <!-- Collect the nav links, forms, and other content for toggling -->
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1" >
       <ul class="nav navbar-nav nav-tabs">
-        <li class="myorders active"><a href="#/standard">My Orders</a></li>
+        <li class="myorders active"><a href="#/standard"><i class="fa fa-list"></i> My Orders</a></li>
 
 
       </ul>
         <ul class="nav navbar-nav nav-pills">
-        <li ng-controller="ModalCtrl"><a href="#" ng-click="open('lg')">New Request</a></li>    
+        <li ng-controller="ModalCtrl"><a href="#" ng-click="open('lg', 0)"><i class="fa fa-file"></i> New Request</a></li>    
         </ul>
       <ul class="nav navbar-nav navbar-right">
           
           
           
           
-        <li ng-controller="ModalCtrl"><a href="#" ng-click="openFilter('lg')"><i class="fa fa-filter"></i></a></li>
-
+        <li ng-controller="ModalCtrl"><button ng-click="openFilter('md')" class="btn btn-default" style="margin-top: 8px;"><i class="fa fa-filter"></i></button></li>
+        <li ng-controller="MainController"><button ng-click="filterRequests()" class="btn btn-default" style="margin-top: 8px;margin-left: 13px;"><i class="fa fa-refresh"></i></button></li>
       </ul>
         
       <form class="navbar-form navbar-right" role="search">
         <div class="input-group">
-            <input type="text" ng-model="q" class="form-control" placeholder="Search for...">
+            <input type="text" ng-model="q" class="form-control" placeholder="Search requests...">
             <span class="input-group-btn">
                 <button class="btn btn-default" type="button"><i class="fa fa-search"></i></button>
             </span>
@@ -67,6 +67,7 @@
     <script src="scripts/angular.js"></script>
     <script src="scripts/angular-route.js"></script>
     <script src="scripts/jquery.min.js"></script>
+    <script src="scripts/moment.js"></script>
 
     <!-- UI Libs -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>

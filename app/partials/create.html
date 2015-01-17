@@ -1,86 +1,107 @@
-        <header>
-            <h3 style="text-align: center;">Create New Request</h3>
-        </header>
 
-        <form class="form-horizontal" style="margin-left:50px; width:80%;">
+    <div class="modal-content">
+      <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true" ng-click="cancel()">×</button>
+            <h2 style="text-align: center;">Create New Request</h2>
+      </div>
+    <div class="modal-body">    
+        <form class="form-horizontal" style="width: 80%;margin: 0 auto;">
             <div class="form-group">
-                <label class="col-sm-2 control-label">Chemical Type</label>
-                <div class="col-sm-10">
-                    <input type="text"  ng-model="newRequest.chemicalType" class="form-control create-firstName" placeholder="Chemical Type">
-                </div>
+                <label class="control-label">Chemical Type</label>
+                <select class="form-control" id="chemicalType" ng-model="request.chemicalType">
+                    <option>Acid</option>
+                    <option>Alkaline</option>
+                    <option>Other</option>
+                </select>
             </div>
             
             <div class="form-group">
-                <label class="col-sm-2 control-label">Chemical Description</label>
-                <div class="col-sm-10">
-                    <input type="text"  ng-model="newRequest.itemDescription" class="form-control create-firstName" placeholder="Chemical Type">
-                </div>
+                <label class="control-label">Chemical Description</label>
+                    <input type="text"  ng-model="request.itemDescription" class="form-control create-description" placeholder="Chemical Description">
             </div>  
             
             <div class="form-group">
-                <label class="col-sm-2 control-label">Quality</label>
-                <div class="col-sm-10">
-                    <input type="text" ng-model="newRequest.quality" class="form-control create-lastName" placeholder="Quality">
-                </div>
+                <label class="control-label">Quality</label>
+                    <input type="number" ng-model="request.quality" class="form-control create-quality" placeholder="Quality">
             </div>
 
             <div class="form-group">
-                <label class="col-sm-2 control-label">Size</label>
-                <div class="col-sm-10">
-                    <input type="text" ng-model="newRequest.size" class="form-control create-city" placeholder="Size">
-                </div>
+                <label class="control-label">Size</label>
+  
+                    <input type="number" ng-model="request.size" class="form-control create-size" placeholder="Size">
             </div>
             
             <div class="form-group">
-                <label class="col-sm-2 control-label">Quantity</label>
-                <div class="col-sm-10">
-                    <input type="text" ng-model="newRequest.quantity" class="form-control create-city" placeholder="Quantity">
-                </div>
+                <label class="control-label">Quantity</label>
+
+                    <input type="number" ng-model="request.quantity" class="form-control create-quantity" placeholder="Quantity">
+
             </div>
             <div class="form-group">
-                <label class="col-sm-2 control-label">Destination Room</label>
-                <div class="col-sm-10">
-                    <input type="text" ng-model="newRequest.destinationRoom" class="form-control create-city" placeholder="Destination Room">
-                </div>
+                <label class="control-label">Destination Room</label>
+
+                    <input type="text" ng-model="request.destinationRoom" class="form-control create-room" placeholder="Destination Room">
+
             </div>
+            
             <div class="form-group">
-                <label class="col-sm-2 control-label">Notes</label>
-                <div class="col-sm-10">
-                    <input type="text" ng-model="newRequest.notes" class="form-control create-city" placeholder="Notes">
-                </div>
+                <label class="control-label">Location Now</label>
+
+                    <input type="text" ng-model="request.location" class="form-control create-location" placeholder="Location Now">
+            </div>  
+            
+            
+            <div class="form-group">
+                <label class="control-label">Notes</label>
+
+                    <input type="text" ng-model="request.notes" class="form-control create-notes" placeholder="Notes">
+
             </div>   
             
             <div class="form-group">
-                <label class="col-sm-2 control-label">CAS</label>
-                <div class="col-sm-10">
-                    <input type="text" ng-model="newRequest.cas" class="form-control create-city" placeholder="CAS">
-                </div>
+                <label class="control-label">Supplier</label>
+
+                <select class="form-control" id="supplier" ng-model="request.supplier" disabled="1" placeholder="Admin only">
+                    <option>Person A</option>
+                    <option>Person B</option>
+                    <option>Other</option>
+                </select>
+
+            </div> 
+            
+            <div class="form-group">
+                <label class="control-label">CAS</label>
+
+                    <input type="text" ng-model="request.cas" class="form-control create-cas" placeholder="Admin only" disabled="1">
+
             </div>               
             
             <div class="form-group">
-                <label class="col-sm-2 control-label">chIM Tag</label>
-                <div class="col-sm-10">
-                    <input type="text" ng-model="newRequest.chimTag" class="form-control create-city" placeholder="chIM Tag">
-                </div>
+                <label class="control-label">chIM Tag</label>
+
+                    <input type="text" ng-model="request.chimTag" class="form-control create-tag" placeholder="Admin only" disabled="1">
+
             </div>   
             
-            <div class="form-group">
-                <label class="col-sm-2 control-label">Location Now</label>
-                <div class="col-sm-10">
-                    <input type="text" ng-model="newRequest.location" class="form-control create-city" placeholder="Location Now">
-                </div>
-            </div>               
+              
             
             
         
         </form>
 
 
-
+    </div>
 
         <div class="modal-footer">
+            <button class="btn btn-primary" type="button" ng-controller="ModalCtrl"
+                ng-disabled="!request.chemicalType" 
+                ng-click="insertRequest(); ok(); open('lg',0)">Add And New Request</button>            
             <button class="btn btn-primary" type="button" 
-                ng-disabled="!newRequest.chemicalType" 
+                ng-disabled="!request.chemicalType" 
                 ng-click="insertRequest(); ok()">Add Request</button>
             <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
         </div>
+        
+</div><!-- /.modal-content -->
+
+    

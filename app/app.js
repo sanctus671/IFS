@@ -10,52 +10,58 @@ app.config(function ($routeProvider) {
         .when('/standard',
             {
                 controller: 'MainController',
-                templateUrl: '/app/partials/standard.html'
+                templateUrl: 'app/partials/standard.html'
             })
         //view for standard user seeing request
         .when('/standardview/:reqID',
             {
                 controller: 'MainViewController',
-                templateUrl: '/app/partials/standardview.html'
+                templateUrl: 'app/partials/standardview.html'
+            })
+        //for editing a request
+        .when('/standardedit/:reqID',
+            {
+                controller: 'MainViewController',
+                templateUrl: 'app/partials/standardview.html'
             })
             
         //for manager user
         .when('/manager',
             {
                 controller: 'MainController',
-                templateUrl: '/app/partials/manager.html'
+                templateUrl: 'app/partials/manager.html'
             })
         //view for manager user seeing request
         .when('/managerview/:reqID',
             {
                 controller: 'MainViewController',
-                templateUrl: '/app/partials/managerview.html'
+                templateUrl: 'app/partials/managerview.html'
             })
             
         //for accountant user    
         .when('/accountant',
             {
                 controller: 'MainController',
-                templateUrl: '/app/partials/accountant.html'
+                templateUrl: 'app/partials/accountant.html'
             })
         //view for accountant user seeing request
         .when('/accountantview/:reqID',
             {
                 controller: 'MainViewController',
-                templateUrl: '/app/partials/accountantview.html'
+                templateUrl: 'app/partials/accountantview.html'
             })
             
         //for admin user    
         .when('/admin',
             {
                 controller: 'MainController',
-                templateUrl: '/app/partials/admin.html'
+                templateUrl: 'app/partials/admin.html'
             })
         //view for admin user seeing request
         .when('/adminview/:reqID',
             {
                 controller: 'MainViewController',
-                templateUrl: '/app/partials/adminview.html'
+                templateUrl: 'app/partials/adminview.html'
             })     
         //default to standard
         .otherwise({ redirectTo: '/standard' });

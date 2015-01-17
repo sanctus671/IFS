@@ -20,6 +20,8 @@ app.service('requestsService', function () {
     this.getRequests = function () {
         return requests;
     };
+    
+    
 
     this.insertRequest = function (data) {
         //data options = id, date, firstName, lastName, phone extension, chemical type, chemical desciption, quality, size, quantity, destination room, notes, chIM Tag, Location now, status, date supplied
@@ -28,22 +30,11 @@ app.service('requestsService', function () {
         data["status"] = "New";
         
         //get current date in correct format
-        var today = new Date();
-        var dd = today.getDate();
-        var mm = today.getMonth()+1; //January is 0!
-        var yyyy = today.getFullYear();
-
-        if(dd<10) {
-            dd='0'+dd
-        } 
-
-        if(mm<10) {
-            mm='0'+mm
-        } 
-
-        today = dd+'/'+mm+'/'+yyyy;       
+        var today = new Date();var dd = today.getDate();var mm = today.getMonth()+1;var yyyy = today.getFullYear();
+        if(dd<10) {dd='0'+dd;} if(mm<10) {mm='0'+mm;} today = dd+'/'+mm+'/'+yyyy;       
         
-        data["date"] = today;
+        
+        data["date"] = new Date();
         
 
         data["name"] = name;
@@ -52,7 +43,7 @@ app.service('requestsService', function () {
         requests.push(data);
     };
     
-    this.updateRequest = function (data) {
+    this.updateRequest = function (id,data) {
         for (var i = 0; i < requests.length; i++) {
             if (requests[i].id === id) {
                 for (var x in data){
@@ -80,82 +71,115 @@ app.service('requestsService', function () {
         }
         return null;
     };
+    
+    this.filterRequests = function (field, option, value, date1, date2){
+        
+        for (var index = requests.length; index--;){
+            if(option === "Contains" && requests[index][field] && requests[index][field].indexOf(value) === -1){
+                requests[index]["filtered"] = 1;
+            }
+            else if (option === "Does not contain" && requests[index][field] && requests[index][field].indexOf(value) > -1){
+                
+                requests[index]["filtered"] = 1;
+            }
+            else if(option === "Is after" && requests[index][field] && requests[index][field] < new Date(date1)){
+                requests[index]["filtered"] = 1;
+            }
+            else if(option === "Is before" && requests[index][field] && requests[index][field] > new Date(date1)){
+                requests[index]["filtered"] = 1;
+            }            
+            else if(option === "Is not between" && requests[index][field] && requests[index][field] > new Date(date1) && requests[index][field] < new Date(date2)){
+                requests[index]["filtered"] = 1;
+            } 
+            else if(option === "Is between" && requests[index][field] && (requests[index][field] < new Date(date1) || requests[index][field] > new Date(date2))){
+                requests[index]["filtered"] = 1;
+            } 
+            else{
+                console.log("here");
+                requests[index]["filtered"] = 0;
+            }
+            
+            
+        }
+        
 
+    };
+    
     var requests = [
         {
-            id: 1, status: 'Completed',date:'20/12/2014', name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
+            id: 1, status: 'Completed',date: new Date('2014-12-20'), name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
             chemicalType:'Chemical Type',itemDescription: 'Item Description',quality:'Quality',size:'Size', quantity:'Quantity',destinationRoom:'Destination Room',notes:'Notes', 
-            cas:'CAS', chimTag: 'Chim Tag', location:'Location',dateSupplied:'21/12/2014'
+            cas:'CAS', chimTag: 'Chim Tag', location:'Location',dateSupplied:new Date('2014-12-21')
             
         } ,
         {
-            id: 2, status: 'Processing',date:'21/12/2014', name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
+            id: 2, status: 'Processing',date:new Date('2014-12-21'), name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
             chemicalType:'Chemical Type',itemDescription: 'Item Description',quality:'Quality',size:'Size', quantity:'Quantity',destinationRoom:'Destination Room',notes:'Notes', 
             cas:'CAS', chimTag: 'Chim Tag', location:'Location'
             
         },
         {
-            id: 3, status: 'Completed',date:'22/12/2014', name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
+            id: 3, status: 'Completed',date:new Date('2014-12-22'), name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
             chemicalType:'Chemical Type',itemDescription: 'Item Description',quality:'Quality',size:'Size', quantity:'Quantity',destinationRoom:'Destination Room',notes:'Notes', 
-            cas:'CAS', chimTag: 'Chim Tag', location:'Location',dateSupplied:'23/12/2014'
+            cas:'CAS', chimTag: 'Chim Tag', location:'Location',dateSupplied:new Date('2014-12-23')
             
         } ,
         {
-            id: 4, status: 'New',date:'22/12/2014', name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
+            id: 4, status: 'New',date:new Date('2014-12-22'), name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
             chemicalType:'Chemical Type',itemDescription: 'Item Description',quality:'Quality',size:'Size', quantity:'Quantity',destinationRoom:'Destination Room',notes:'Notes', 
             cas:'CAS', chimTag: 'Chim Tag', location:'Location'
             
         },
         {
-            id: 5, status: 'New',date:'22/12/2014', name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
+            id: 5, status: 'New',date: new Date('2014-12-22'), name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
             chemicalType:'Chemical Type',itemDescription: 'Item Description',quality:'Quality',size:'Size', quantity:'Quantity',destinationRoom:'Destination Room',notes:'Notes', 
             cas:'CAS', chimTag: 'Chim Tag', location:'Location'
             
         },
         {
-            id: 6, status: 'New',date:'22/12/2014', name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
-            chemicalType:'Chemical Type',itemDescription: 'Item Description',quality:'Quality',size:'Size', quantity:'Quantity',destinationRoom:'Destination Room',notes:'Notes', 
-            cas:'CAS', chimTag: 'Chim Tag', location:'Location'
-            
-        } ,
-        {
-            id: 7, status: 'New',date:'23/12/2014', name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
-            chemicalType:'Chemical Type',itemDescription: 'Item Description',quality:'Quality',size:'Size', quantity:'Quantity',destinationRoom:'Destination Room',notes:'Notes', 
-            cas:'CAS', chimTag: 'Chim Tag', location:'Location'
-            
-        },
-        {
-            id: 8, status: 'New',date:'23/12/2014', name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
-            chemicalType:'Chemical Type',itemDescription: 'Item Description',quality:'Quality',size:'Size', quantity:'Quantity',destinationRoom:'Destination Room',notes:'Notes', 
-            cas:'CAS', chimTag: 'Chim Tag', location:'Location'
-            
-        },
-        {
-            id: 9, status: 'New',date:'23/12/2014', name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
+            id: 6, status: 'New',date:new Date('2014-12-22'), name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
             chemicalType:'Chemical Type',itemDescription: 'Item Description',quality:'Quality',size:'Size', quantity:'Quantity',destinationRoom:'Destination Room',notes:'Notes', 
             cas:'CAS', chimTag: 'Chim Tag', location:'Location'
             
         } ,
         {
-            id: 10, status: 'New',date:'23/12/2014', name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
+            id: 7, status: 'New',date:new Date('2014-12-23'), name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
             chemicalType:'Chemical Type',itemDescription: 'Item Description',quality:'Quality',size:'Size', quantity:'Quantity',destinationRoom:'Destination Room',notes:'Notes', 
             cas:'CAS', chimTag: 'Chim Tag', location:'Location'
             
         },
         {
-            id: 11, status: 'New',date:'24/12/2014', name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
+            id: 8, status: 'New',date:new Date('2014-12-23'), name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
             chemicalType:'Chemical Type',itemDescription: 'Item Description',quality:'Quality',size:'Size', quantity:'Quantity',destinationRoom:'Destination Room',notes:'Notes', 
             cas:'CAS', chimTag: 'Chim Tag', location:'Location'
             
         },
         {
-            id: 12, status: 'New',date:'27/12/2014', name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
+            id: 9, status: 'New',date:new Date('2014-12-23'), name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
             chemicalType:'Chemical Type',itemDescription: 'Item Description',quality:'Quality',size:'Size', quantity:'Quantity',destinationRoom:'Destination Room',notes:'Notes', 
             cas:'CAS', chimTag: 'Chim Tag', location:'Location'
             
         } ,
         {
-            id: 13, status: 'New',date:'28/12/2014', name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
+            id: 10, status: 'New',date:new Date('2014-12-23'), name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
+            chemicalType:'Chemical Type',itemDescription: 'Item Description',quality:'Quality',size:'Size', quantity:'Quantity',destinationRoom:'Destination Room',notes:'Notes', 
+            cas:'CAS', chimTag: 'Chim Tag', location:'Location'
+            
+        },
+        {
+            id: 11, status: 'New',date:new Date('2014-12-24'), name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
+            chemicalType:'Chemical Type',itemDescription: 'Item Description',quality:'Quality',size:'Size', quantity:'Quantity',destinationRoom:'Destination Room',notes:'Notes', 
+            cas:'CAS', chimTag: 'Chim Tag', location:'Location'
+            
+        },
+        {
+            id: 12, status: 'New',date:new Date('2014-12-27'), name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
+            chemicalType:'Chemical Type',itemDescription: 'Item Description',quality:'Quality',size:'Size', quantity:'Quantity',destinationRoom:'Destination Room',notes:'Notes', 
+            cas:'CAS', chimTag: 'Chim Tag', location:'Location'
+            
+        } ,
+        {
+            id: 13, status: 'New',date:new Date('2014-12-28'), name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
             chemicalType:'Chemical Type', itemDescription: 'Item Description', quality:'Quality',size:'Size', quantity:'Quantity',destinationRoom:'Destination Room',notes:'Notes', 
             cas:'CAS', chimTag: 'Chim Tag', location:'Location'
             
@@ -163,4 +187,10 @@ app.service('requestsService', function () {
 
         
     ];
+    
+    
+    //clone of array to reset when filtering
+    var originalRequests = requests.slice();
+    
+    
 });

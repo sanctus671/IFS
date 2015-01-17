@@ -7,26 +7,26 @@
 
                   <thead>
                       <tr>
-                          <th><a href="" ng-click="changeOrder('id')">Request ID <span ng-show="orderByField === 'id'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
+                          <th style="border-bottom:none;"><a href="" ng-click="changeOrder('id')">Request ID <span ng-show="orderByField === 'id'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
                           
-                          <th><a href="" ng-click="changeOrder('date')">Date Created <span ng-show="orderByField === 'date'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
-                          <th><a href="" ng-click="changeOrder('itemDescription')">Item Description <span ng-show="orderByField === 'itemDescription'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
-                          <th><a href="" ng-click="changeOrder('status')">Status <span ng-show="orderByField === 'status'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
-                          <th><a href="" ng-click="changeOrder('dateSupplied')">Date Supplied/Cancelled <span ng-show="orderByField === 'dateSupplied'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
+                          <th style="border-bottom:none;"><a href="" ng-click="changeOrder('date')">Date Created <span ng-show="orderByField === 'date'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
+                          <th style="border-bottom:none;width:30%"><a href="" ng-click="changeOrder('itemDescription')">Item Description <span ng-show="orderByField === 'itemDescription'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
+                          <th style="border-bottom:none;"><a href="" ng-click="changeOrder('status')">Status <span ng-show="orderByField === 'status'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
+                          <th style="border-bottom:none;"><a href="" ng-click="changeOrder('dateSupplied')">Date Supplied/Cancelled <span ng-show="orderByField === 'dateSupplied'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
                       </tr>
                   </thead>  
                   <tbody>
-                <tr dir-paginate="request in requests | orderBy:orderByField:sortReverse | itemsPerPage: pageSize | filter:q" current-page="currentPage">
+                <tr dir-paginate="request in requests | orderBy:orderByField:sortReverse | itemsPerPage: pageSize | filter:q" current-page="currentPage" ng-if="request.filtered !== 1">
                     <td><a href="#/standardview/{{request.id}}" class="btn-link">{{request.id}}</a></td>
-                    <td>{{request.date}}</td>
+                    <td>{{request.date | date:'dd/MM/yyyy'}}</td>
                     <td>{{request.itemDescription}}</td>
                     <td>{{request.status}}</td>
-                    <td>{{request.dateSupplied}}</td>
+                    <td>{{request.dateSupplied | date:'dd/MM/yyyy'}}</td>
                     <td>
-                        <div class="other-options" style="float:right;width: 180px;">
-                        <button class="btn btn-default"  data-ng-click="reorderRequest(request.id)">Reorder</button> 
-                        <button class="btn btn-default " ng-if="request.status === 'New'" data-ng-click="editRequest(request.id)"><i class="fa fa-pencil-square-o"></i></button> 
-                        <button class="btn btn-default" ng-if="request.status === 'New'" data-ng-click="deleteRequest(request.id)"><i class="fa fa-times"></i></button>
+                        <div class="other-options" style="float:right;">
+                        <button class="btn btn-default"  ng-if="request.status === 'Completed'" ng-controller="ModalCtrl" ng-click="open('lg',request.id)">Reorder</button> 
+                        <button class="btn btn-default " ng-if="request.status === 'New'" ng-controller="ModalCtrl" ng-click="openEdit('lg',request.id)"><i class="fa fa-pencil-square-o"></i></button> 
+                        <button class="btn btn-default" ng-if="request.status === 'New'" ng-controller="ModalCtrl" ng-click="confirmDelete('sm',request.id)"><i class="fa fa-times"></i></button>
                         </div>
                     </td>
                         
@@ -45,8 +45,8 @@
         <div class="pagination-options" style="display:inline; float:right; margin-top:25px;">
 
             <label for="search">items per page:</label>
-            
-            <input type="number" ng-model="pageSize" min="1" max="100" class="form-control" value="2" style="display:inline; width:initial;"> 
+            <a href="" ng-click="changePageSize('10')">10</a> | <a href="" ng-click="changePageSize('25')">25</a> | <a href="" ng-click="changePageSize('50')">50</a> | <a href="" ng-click="changePageSize('100')">100</a> | <a href="" ng-click="changePageSize('200')">200</a>
+            <!--<input type="number" ng-model="pageSize" min="1" max="100" class="form-control" value="2" style="display:inline; width:initial;"> -->
                         <!--<label for="search" >Requests ordered by:</label> 
                         {{orderByField}}-->
         </div>
