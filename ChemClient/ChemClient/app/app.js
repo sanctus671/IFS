@@ -1,6 +1,5 @@
 
-
-var app = angular.module('requestsApp', ['ngRoute','angularUtils.directives.dirPagination', 'ui.bootstrap']);
+var app = angular.module('requestsApp', ['ui.event', 'ui.autocomplete', 'ngRoute','angularUtils.directives.dirPagination', 'ui.bootstrap']);
 
 //This configures the routes and associates each route with a view and a controller
 app.config(function ($routeProvider) {
@@ -66,7 +65,5 @@ app.config(function ($routeProvider) {
         //default to standard
         .otherwise({ redirectTo: '/standard' });
 });
-
-
 
 
