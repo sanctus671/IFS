@@ -56,15 +56,7 @@ app.controller('MainController', function ($scope, requestsService,$location) {
     
     
     
-    
-    $scope.reorderRequest = function (id) {
-        for (var x in $scope.requests){
-            if ($scope.requests[x].id === id){
-                $scope.newRequest = $.extend(true, {}, $scope.requests[x]);
-                $scope.insertRequest();
-            }
-        }
-    };
+
 
 
 
@@ -235,9 +227,9 @@ app.controller('ModalCtrl', function ($scope, $modal, $log) {
 
 
 
-app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, items, requestsService, id) {
+app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, items, requestsService, id) {
   $scope.id = id;
-  if (id > 0){$scope.request = requestsService.getRequest(id);}
+  if (id > 0){$scope.request = requestsService.getRequest(id); $scope.request.dateSupplied = ""}
   $scope.items = items;
   $scope.selected = {
     item: $scope.items[0]
@@ -283,10 +275,67 @@ app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, items, req
     };
   
   
-  
+    //for autocomplete
+    $scope.changeClass = function (options) {
+        var widget = options.methods.widget();
+        // remove default class, use bootstrap style
+        widget.removeClass('ui-menu ui-corner-all ui-widget-content').addClass('dropdown-menu');
+    }; 
+    
+    $scope.myOption = {
+        options: {
+            html: true,
+            minLength: 1,
+            onlySelectValid: true,
+            outHeight: 50,
+            source: function (request, response) {
+                var data = [
+                            "Aspppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
+                            "BASIC",
+                            "C",
+                            "C++",
+                            "Clojure",
+                            "COBOL",
+                            "ColdFusion",
+                            "Erlang",
+                            "Fortran",
+                            "Groovy",
+                            "Haskell",
+                            "Java",
+                            "JavaScript",
+                            "Lisp",
+                            "Perl",
+                            "PHP",
+                            "Python",
+                            "Ruby",
+                            "Scala",
+                            "Scheme"
+                    ];
+                    
+                    data = $scope.myOption.methods.filter(data, request.term);
+
+                    if (!data.length) {
+                        data.push({
+                            label: 'not found',
+                            value: null
+                        });
+                    }
+                    // add "Add Language" button to autocomplete menu bottom
+                    /*data.push({
+                        label: $compile('<a class="ui-menu-add" ng-click="add()">Add Language</a>')($scope),
+                        value: null
+                    });*/
+                    response(data);
+                }
+            },
+            events: {
+                change: function (event, ui) {
+                    //console.log('change', event, ui);
+                },
+                select: function (event, ui) {
+                    //console.log('select', event, ui);
+                }
+            }
+        };  
   
 });
-
-
-
-
