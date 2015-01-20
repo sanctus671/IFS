@@ -57,6 +57,8 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="app\directives\autocomplete\autocomplete.js" />
+    <Content Include="app\directives\autocomplete\event.js" />
     <Content Include="content\fonts\fontawesome-webfont.eot" />
     <Content Include="content\fonts\fontawesome-webfont.ttf" />
     <Content Include="content\fonts\fontawesome-webfont.woff" />
@@ -173,6 +175,9 @@
     <Content Include="node_modules\connect\node_modules\uid2\package.json" />
     <Content Include="node_modules\connect\package.json" />
     <Content Include="node_modules\connect\Readme.md" />
+    <Content Include="content\fonts\nim.eot" />
+    <Content Include="content\fonts\nim.ttf" />
+    <Content Include="content\fonts\nim.woff" />
     <None Include="Properties\PublishProfiles\massey-ifs.pubxml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -447,7 +452,9 @@
     <Content Include="node_modules\connect\node_modules\uid2\index.js" />
     <Content Include="scripts\angular-route.js" />
     <Content Include="scripts\angular.js" />
+    <Content Include="scripts\jquery-ui.min.js" />
     <Content Include="scripts\jquery.min.js" />
+    <Content Include="scripts\moment.js" />
     <Content Include="server.js" />
     <Content Include="Web.config" />
   </ItemGroup>
