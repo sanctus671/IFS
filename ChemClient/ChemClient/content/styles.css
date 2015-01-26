@@ -38,7 +38,6 @@ a{
           /* will be fixed by options.outHeight */
           max-height: 300px;
           min-height: 50px;
-          max-width: 200px;
           overflow-y: auto;
           /* prevent horizontal scrollbar */
           overflow-x: hidden;
@@ -138,3 +137,4 @@ width: 150px;
 .ui-helper-hidden-accessible{
     display:none;
 }
+

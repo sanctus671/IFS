@@ -31,8 +31,8 @@
               <td><span class="column">Email:</span> {{ request.email}}</td>
           </tr>
           <tr>
-              <td><span class="column">Chemical Type:</span> {{ request.chemicalType}}</td>
-              <td><span class="column">Status:</span> {{ request.status}}</td>
+              <td><span class="column">Type:</span> {{ request.type}}</td>
+              <td><span class="column">Destination Room:</span> {{ request.destinationRoom}}</td>
               <td><span class="column">Item Description:</span> {{ request.itemDescription}}</td>
           </tr>
           <tr>
@@ -41,16 +41,25 @@
               <td><span class="column">Quantity:</span> {{ request.quantity}}</td>
           </tr>
           <tr>
-              <td><span class="column">Destination Room:</span> {{ request.destinationRoom}}</td>
+              <td><span class="column">Verteré:</span> {{ request.vertere}}</td>
               <td><span class="column">Notes:</span> {{ request.notes}}</td>
               <td><span class="column">CAS:</span> {{ request.cas}}</td>
           </tr>
           <tr>
-              <td><span class="column">Chim Tag:</span> {{ request.chimTag}}</td>
-              <td><span class="column">Location:</span> {{ request.location}}</td>
+              <td><span class="column">Account Number:</span> {{ request.accountNumber}}</td>
+              <td><span class="column">Supplier:</span> {{ request.supplier}}</td>
               <td><span class="column">Supplied Date:</span> {{request.dateSupplied | date:'dd/MM/yyyy'}}</td>
           </tr>
-
+          <tr>
+              <td><span class="column">Admin:</span> {{ request.adminName}}</td>
+              <td><span class="column">Cost:</span> {{ request.cost}}</td>
+              <td><span class="column">Admin Notes:</span> {{ request.adminNotes}}</td>
+          </tr>
+          <tr>
+              <td><span class="column">Analysis Code:</span> {{ request.analysisCode}}</td>
+              <td><span class="column">&nbsp;</td>
+              <td><span class="column">&nbsp;</td>
+          </tr>          
       </tbody>
 </table>
 

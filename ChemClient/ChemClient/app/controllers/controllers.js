@@ -229,7 +229,7 @@ app.controller('ModalCtrl', function ($scope, $modal, $log) {
 
 app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, items, requestsService, id) {
   $scope.id = id;
-  if (id > 0){$scope.request = requestsService.getRequest(id); $scope.request.dateSupplied = ""}
+  if (id > 0){$scope.request = requestsService.getRequest(id); $scope.request.dateSupplied = "";}
   $scope.items = items;
   $scope.selected = {
     item: $scope.items[0]
@@ -237,10 +237,11 @@ app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, 
     $scope.insertRequest = function () {  
         var toBeInserted = {
             cas:$scope.request['cas'],
-            chimTag:$scope.request['chimTag'],
+            vertere:$scope.request['vertere'],
             date:$scope.request['date'],
             dateSupplied:$scope.request['dateSupplied'],
             destinationRoom:$scope.request['destinationRoom'],
+            type:$scope.request['type'],
             email:$scope.request['email'],
             itemDescription:$scope.request['itemDescription'],
             location:$scope.request['location'],
@@ -249,7 +250,8 @@ app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, 
             quality:$scope.request['quality'],
             quantity:$scope.request['quantity'],
             size:$scope.request['size'],
-            status:$scope.request['status']};
+            status:$scope.request['status'],
+            accountNumber:$scope.request['accountNumber']};
 
 
         requestsService.insertRequest(toBeInserted);
@@ -282,7 +284,7 @@ app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, 
         widget.removeClass('ui-menu ui-corner-all ui-widget-content').addClass('dropdown-menu');
     }; 
     
-    $scope.myOption = {
+    $scope.descriptionOptions = {
         options: {
             html: true,
             minLength: 1,
@@ -290,29 +292,13 @@ app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, 
             outHeight: 50,
             source: function (request, response) {
                 var data = [
-                            "Aspppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
-                            "BASIC",
-                            "C",
-                            "C++",
-                            "Clojure",
-                            "COBOL",
-                            "ColdFusion",
-                            "Erlang",
-                            "Fortran",
-                            "Groovy",
-                            "Haskell",
-                            "Java",
-                            "JavaScript",
-                            "Lisp",
-                            "Perl",
-                            "PHP",
-                            "Python",
-                            "Ruby",
-                            "Scala",
-                            "Scheme"
+                            "A recent item description",
+                            "Another recent item description",
+                            "This one",
+                            "Descriptions get saved for suggestions automatically when you make a new request"
                     ];
                     
-                    data = $scope.myOption.methods.filter(data, request.term);
+                    data = $scope.descriptionOptions.methods.filter(data, request.term);
 
                     if (!data.length) {
                         data.push({
@@ -336,6 +322,63 @@ app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, 
                     //console.log('select', event, ui);
                 }
             }
-        };  
+        };
+        
+        
+    $scope.destinationRoomOptions = {
+        options: {
+            html: true,
+            minLength: 1,
+            onlySelectValid: true,
+            outHeight: 50,
+            source: function (request, response) {
+                var data = [
+                            "SC B 1",
+                            "SC B 2",
+                            "SC B 3",
+                            "SC B 4",
+                            "SC C 1",
+                            "SC C 2",
+                            "SC C 3",
+                            "SC C 4",
+                            "SC D 1",
+                            "SC D 2",
+                            "SC D 3",
+                            "SC D 4",
+                            "SC A 1",
+                            "SC A 2",
+                            "SC A 3",
+                            "SC A 4"
+                    ];
+                    
+                    data = $scope.destinationRoomOptions.methods.filter(data, request.term);
+
+                    if (!data.length) {
+                        data.push({
+                            label: 'not found',
+                            value: null
+                        });
+                    }
+                    // add "Add Language" button to autocomplete menu bottom
+                    /*data.push({
+                        label: $compile('<a class="ui-menu-add" ng-click="add()">Add Language</a>')($scope),
+                        value: null
+                    });*/
+                    response(data);
+                }
+            },
+            events: {
+                change: function (event, ui) {
+                    //console.log('change', event, ui);
+                },
+                select: function (event, ui) {
+                    //console.log('select', event, ui);
+                }
+            }
+        };        
+        
+        
+        
+        
   
 });

@@ -11,42 +11,44 @@
                 <select class="form-control" id="feld" ng-model="field">
                     <option value="supplier">Supplier</option>
                     <option value="date">Date Created</option>
-                    <option value="dateSupplied">Date Supplied/Cancelled</option>
-                    <option value="status">Status</option>
+                    <option value="accountNumber">Account Number</option>
+                    <option value="type">Type</option>
+                    <option value="description">Description</option>
                 </select>
             </div>
             
-            <div class="form-group" ng-show="field.length > 0 && field !== 'date' && field !== 'dateSupplied'">
+            <div class="form-group" ng-show="field.length > 0 && field !== 'date'">
                 <label for="options1">Options:</label>
                 <select class="form-control" id="options1" ng-model="options1">
-                    <option>Contains</option>
-                    <option>Does not contain</option>
+                    <option value="contain">Contains</option>
+                    <option value="notcontain">Does not contain</option>
                 </select>
             </div> 
             
-            <div class="form-group" ng-show="options1.length > 0 && field !== 'date' && field !== 'dateSupplied'">
+            <div class="form-group" ng-show="options1.length > 0 && field !== 'date'">
                 <label for="value">Value:</label>
                 <input class="form-control" ng-model="value" type="text" id="value"/>
             </div>             
             
-            <div class="form-group" ng-show="field.length > 0 && field === 'date' || field === 'dateSupplied'">
+            <div class="form-group" ng-show="field.length > 0 && field === 'date'">
                 <label for="options2">Options:</label>
                 <select class="form-control" id="options2" ng-model="options2">
-                    <option>Is between</option>
-                    <option>Is not between</option>
-                    <option>Is after</option>
-                    <option>Is before</option>
+                    <option value="between">Is between</option>
+                    <option value="notbetween">Is not between</option>
+                    <option value="after">Is after</option>
+                    <option value="before">Is before</option>
                 </select>
             </div>  
             
-            <div class="form-group" ng-show="options2.length > 0 && field !== 'supplier' && field !== 'status'">
-                <label for="date1" ng-show="options2 !== 'Is after' && options2 !== 'Is before'  && field !== 'supplier' && field !== 'status'">Start date:</label><label for="date1" ng-show="options2 !== 'Is between' && options2 !== 'Is not between'  && field !== 'supplier' && field !== 'status' ">Date:</label>
+            <div class="form-group" ng-show="options2.length > 0 && field === 'date'">
+                <label for="date1" ng-show="options2 === 'between' || options2 === 'notbetween'">Start date:</label>
+                <label for="date1" ng-show="options2 === 'after' || options2 === 'before'">Date:</label>
                 <input class="form-control" ng-model="date1" type="date" id="date1"/>
             </div>  
             
              
             
-            <div class="form-group" ng-show="options2.length > 0 && options2 !== 'Is after' && options2 !== 'Is before'  && field !== 'supplier' && field !== 'status'">
+            <div class="form-group" ng-show="date1.length > 0 && options2 === 'between' || options2 === 'notbetween'">
                 <label for="date2">End date:</label>
                 <input class="form-control" ng-model="date2" type="date" id="date2"/>
             </div>             
