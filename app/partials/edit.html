@@ -198,16 +198,13 @@
         
         </form>
 
-
-
         <div class="modal-footer">
-            <button class="btn btn-primary" type="button" ng-controller="ModalCtrl"
+            <button class="btn btn-primary" type="button"
                 ng-disabled="!request.type || !request.accountNumber" 
-                ng-click="insertRequest(); ok(); open('lg',0)">Add And New Request</button>            
-            <button class="btn btn-primary" type="button" 
-                ng-disabled="!request.type || !request.accountNumber" 
-                ng-click="insertRequest(); ok()">Add Request</button>
+                ng-click="updateRequest(id,request); ok()">Save</button>            
             <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
         </div>
+
+
         
     </div>

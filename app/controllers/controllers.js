@@ -292,6 +292,7 @@ app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, 
             outHeight: 50,
             source: function (request, response) {
                 var data = [
+                            "This is a description of the item",
                             "A recent item description",
                             "Another recent item description",
                             "This one",
