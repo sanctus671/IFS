@@ -1,0 +1,30 @@
+﻿<div class="view" >
+    <div class="container">
+
+
+        <div style="padding-bottom: 20px;padding-left: 10px;"><a href="#/adminsuppliers" class="btn btn-default back-button"><span class="fa fa-arrow-left"></span> Go Back</a></div>
+<div class="panel panel-default">
+  <!-- Default panel contents -->
+  <div class="panel-heading">
+            <h2 style="display:inline;">Details for Supplier {{ supplier.id}}</h2>
+            <div style="display:inline;float:right;">
+                <button class="btn btn-default " ng-controller="ModalCtrl" ng-click="openEditSupplier('lg',supplier.id)" title="Edit supplier"><i class="fa fa-pencil-square-o"></i></button> 
+                <button class="btn btn-default" ng-controller="ModalCtrl" ng-click="confirmDeleteSupplier('sm',supplier.id)" title="Delete supplier"><i class="fa fa-times"></i></button>
+            </div>    
+  
+  
+  </div>
+
+
+  <!-- Table -->
+  <table class="table table-bordered ">
+      <tbody>
+          <tr>
+              <td><span class="column">Supplier ID:</span> {{ supplier.id}}</td>
+              <td><span class="column">Name:</span> {{ supplier.name}}</td>
+          </tr>
+                   
+      </tbody>
+</table>
+
+<script>$('.suppliers').removeClass('active');</script> 

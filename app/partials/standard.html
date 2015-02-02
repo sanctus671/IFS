@@ -17,16 +17,16 @@
                   </thead>  
                   <tbody>
                 <tr dir-paginate="request in requests | orderBy:orderByField:sortReverse | itemsPerPage: pageSize | filter:q" current-page="currentPage" ng-if="request.filtered !== 1">
-                    <td><a href="#/standardview/{{request.id}}" class="btn-link">{{request.id}}</a></td>
+                    <td><a href="#/standardview/{{request.id}}" class="btn-link" title="View all details for this request">{{request.id}}</a></td>
                     <td>{{request.date | date:'dd/MM/yyyy'}}</td>
                     <td>{{request.itemDescription}}</td>
                     <td>{{request.status}}</td>
                     <td>{{request.accountNumber}}</td>
                     <td>
                         <div class="other-options" style="float:right;">
-                        <button class="btn btn-default"  ng-if="request.status === 'Supplied' || request.status === 'Incorrect' || request.status === 'Cancelled'" ng-controller="ModalCtrl" ng-click="open('lg',request.id)">Reorder</button> 
-                        <button class="btn btn-default " ng-if="request.status === 'Ordered'" ng-controller="ModalCtrl" ng-click="openEdit('lg',request.id)"><i class="fa fa-pencil-square-o"></i></button> 
-                        <button class="btn btn-default" ng-if="request.status === 'Ordered'" ng-controller="ModalCtrl" ng-click="confirmDelete('sm',request.id)"><i class="fa fa-times"></i></button>
+                        <button class="btn btn-default"  ng-if="request.status === 'Supplied' || request.status === 'Incorrect' || request.status === 'Cancelled'" ng-controller="ModalCtrl" ng-click="open('lg',request.id)" title="Reorder the same request">Reorder</button> 
+                        <button class="btn btn-default " ng-if="request.status === 'Ordered'" ng-controller="ModalCtrl" ng-click="openEdit('lg',request.id)" title="Edit request"><i class="fa fa-pencil-square-o"></i></button> 
+                        <button class="btn btn-default" ng-if="request.status === 'Ordered'" ng-controller="ModalCtrl" ng-click="confirmDelete('sm',request.id)"  title="Delete request"><i class="fa fa-times"></i></button>
                         </div>
                     </td>
                         
@@ -46,32 +46,12 @@
 
             <label for="search">items per page:</label>
             <a href="" ng-click="changePageSize('10')">10</a> | <a href="" ng-click="changePageSize('25')">25</a> | <a href="" ng-click="changePageSize('50')">50</a> | <a href="" ng-click="changePageSize('100')">100</a> | <a href="" ng-click="changePageSize('200')">200</a>
-            <!--<input type="number" ng-model="pageSize" min="1" max="100" class="form-control" value="2" style="display:inline; width:initial;"> -->
-                        <!--<label for="search" >Requests ordered by:</label> 
-                        {{orderByField}}-->
+
         </div>
-        
-        
-        
-        
-        
-        
-        
-        <!--
-        <div>
-            <div class="row cardContainer">
-                <div class="span3 card" data-ng-repeat="request in requests | orderBy:'lastName'">
-                    <button class="btn close cardClose" data-ng-click="deleteRequest(request.id)">&times;</button>
-                    <div class="cardHeader">{{request.firstName + ' ' + request.lastName}}</div>
-                    <div class="cardBody">{{request.city}}</div>
-                    <a href="#/standardview/{{request.id}}" class="cardBody btn-link">View {{ request.orders.length }} Orders</a>
-                </div>
-            </div>
-        </div>
-        -->
-        
         
         
         
     </div>
 </div>
+
+<script>$('.myorders').addClass('active');</script> 

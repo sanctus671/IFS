@@ -8,9 +8,9 @@
   <div class="panel-heading">
             <h2 style="display:inline;">Details for Request {{ request.id}}</h2>
             <div style="display:inline;float:right;">
-                <button class="btn btn-default"  ng-if="request.status === 'Completed'" ng-controller="ModalCtrl" ng-click="open('lg',request.id)">Reorder</button> 
-                <button class="btn btn-default " ng-if="request.status === 'New'" ng-controller="ModalCtrl" ng-click="openEdit('lg',request.id)"><i class="fa fa-pencil-square-o"></i></button> 
-                <button class="btn btn-default" ng-if="request.status === 'New'" ng-controller="ModalCtrl" ng-click="confirmDelete('sm',request.id)"><i class="fa fa-times"></i></button>
+                <button class="btn btn-default"  ng-if="request.status === 'Supplied' || request.status === 'Incorrect' || request.status === 'Cancelled'" ng-controller="ModalCtrl" ng-click="open('lg',request.id)" title="Reorder the same request">Reorder</button> 
+                <button class="btn btn-default " ng-if="request.status === 'Ordered'" ng-controller="ModalCtrl" ng-click="openEdit('lg',request.id)" title="Edit request"><i class="fa fa-pencil-square-o"></i></button> 
+                <button class="btn btn-default" ng-if="request.status === 'Ordered'" ng-controller="ModalCtrl" ng-click="confirmDelete('sm',request.id)" title="Delete request"><i class="fa fa-times"></i></button>
             </div>    
   
   
@@ -57,9 +57,10 @@
           </tr>
           <tr>
               <td><span class="column">Analysis Code:</span> {{ request.analysisCode}}</td>
-              <td><span class="column">&nbsp;</td>
-              <td><span class="column">&nbsp;</td>
+              <td><span class="column">Permit:</span> {{ request.permit}}</td>
+              <td><span class="column">Permit Number:</span> {{ request.permitNumber}}</td>
           </tr>          
       </tbody>
 </table>
 
+<script>$('.myorders').removeClass('active');</script> 

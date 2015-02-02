@@ -1,10 +1,11 @@
 
 app.controller('MainController', function ($scope, requestsService,$location) {
 
-
+    
     init();
 
     function init() {
+        
         
         $scope.permissions = requestsService.getUser().permissions;
         
@@ -19,8 +20,9 @@ app.controller('MainController', function ($scope, requestsService,$location) {
             document.location.href='/#/accountant/';
         }
         else if ($scope.permissions  === 'admin' && $location.path().indexOf("admin") === -1){
-            $location.path('/admin/');
+            document.location.href='/#/admin/';
         }
+
         
         
         $scope.currentPage = 1;
@@ -29,24 +31,29 @@ app.controller('MainController', function ($scope, requestsService,$location) {
         $scope.sortReverse = true;
         
         $scope.requests = requestsService.getRequests();
-
+ 
       
     }
     
 
-    
     $scope.changeOrder = function (header) {
         $scope.orderByField = header; 
         $scope.sortReverse = !$scope.sortReverse;
-        console.log($scope.orderByField);
+
     };
     
     $scope.changePageSize = function (size) {
         
         $scope.pageSize = size; 
-        console.log($scope.pageSize);
+
 
     };
+    
+    $scope.change = function (){
+        requestsService.changePermissions('admin');
+    };    
+    
+    
     
     $scope.insertRequest = function () {      
 
@@ -54,13 +61,6 @@ app.controller('MainController', function ($scope, requestsService,$location) {
         $scope.newRequest = {};
     };
     
-    
-    
-
-
-
-
-
 
 
     $scope.deleteRequest = function (id) {
@@ -68,7 +68,6 @@ app.controller('MainController', function ($scope, requestsService,$location) {
     };
     
   $scope.filterRequests = function(field,options1,options2,value,date1,date2){
-      console.log("here");
         if (options1){
             requestsService.filterRequests(field, options1, value, date1, date2);
         }
@@ -82,7 +81,6 @@ app.controller('MainController', function ($scope, requestsService,$location) {
 
 app.controller('MainViewController', function ($scope, $routeParams, requestsService) {
     $scope.request = {};
-    $scope.ordersTotal = 0.00;
 
 
 
@@ -95,26 +93,11 @@ app.controller('MainViewController', function ($scope, $routeParams, requestsSer
 
             $scope.request = requestsService.getRequest(requestID);
         }
-        if ($('.myorders').length){
-            $('.myorders').removeClass('active'); 
-            $('.myorders').click(function(){
-                $('.myorders').addClass('active'); 
-            });
-            $('.back-button').click(function(){
-                $('.myorders').addClass('active'); 
-            });            
-            
-        }
-    }
     
-    $scope.insertRequest = function () {      
-
-        requestsService.insertRequest($scope.newRequest);
-        $scope.newRequest = {};
-    };    
-    $scope.deleteRequest = function (id) {
-        requestsService.deleteRequest(id);
-    };    
+        
+        
+    }
+  
 
 });
 
@@ -137,6 +120,9 @@ app.controller('ModalCtrl', function ($scope, $modal, $log) {
         },
         id: function() {
             return id;
+        },
+        supplier: function() {
+            return false;
         }
       }
     });
@@ -160,6 +146,9 @@ app.controller('ModalCtrl', function ($scope, $modal, $log) {
         },
         id: function() {
             return id;
+        },
+        supplier: function() {
+            return false;
         }
       }
     });
@@ -183,6 +172,9 @@ app.controller('ModalCtrl', function ($scope, $modal, $log) {
         },
         id: function() {
             return id;
+        },
+        supplier: function() {
+            return false;
         }
       }
     });
@@ -210,7 +202,10 @@ app.controller('ModalCtrl', function ($scope, $modal, $log) {
         },
         id: function() {
             return id;
-        }
+        },
+        supplier: function() {
+            return false;
+        }        
       }
     });
 
@@ -219,17 +214,112 @@ app.controller('ModalCtrl', function ($scope, $modal, $log) {
     }, function () {
       //$log.info('Modal dismissed at: ' + new Date());
     });
-  };    
+  };   
   
+  
+  $scope.openSupplier = function (size, id) {
+
+    var modalInstance = $modal.open({
+      templateUrl: 'app/partials/createsupplier.html',
+      controller: 'ModalInstanceCtrl',
+      size: size,
+      resolve: {
+        items: function () {
+          return $scope.items;
+        },
+        id: function() {
+            return id;
+        },
+        supplier: function() {
+            return true;
+        }         
+      }
+    });
+
+    modalInstance.result.then(function (selectedItem) {
+      $scope.selected = selectedItem;
+    }, function () {
+      //$log.info('Modal dismissed at: ' + new Date());
+    });
+  };  
+  
+  $scope.openEditSupplier = function (size,id) {
+      
+    var modalInstance = $modal.open({
+      templateUrl: 'app/partials/editsupplier.html',
+      controller: 'ModalInstanceCtrl',
+      size: size,
+      resolve: {
+        items: function () {
+          return $scope.items;
+        },
+        id: function() {
+            return id;
+        },
+        supplier: function() {
+            return true;
+        }         
+      }
+    });
+
+    modalInstance.result.then(function (selectedItem) {
+      $scope.selected = selectedItem;
+    }, function () {
+      //$log.info('Modal dismissed at: ' + new Date());
+    });
+  };   
+  
+  
+  
+  
+    
+  $scope.confirmDeleteSupplier = function (size,id) {
+      
+    var modalInstance = $modal.open({
+      templateUrl: 'app/partials/deletesupplier.html',
+      controller: 'ModalInstanceCtrl',
+      size: size,
+      resolve: {
+        items: function () {
+          return $scope.items;
+        },
+        id: function() {
+            return id;
+        },
+        supplier: function() {
+            return true;
+        }        
+      }
+    });
+
+    modalInstance.result.then(function (selectedItem) {
+      $scope.selected = selectedItem;
+    }, function () {
+      //$log.info('Modal dismissed at: ' + new Date());
+    });
+  };  
   
   
 });
 
 
 
-app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, items, requestsService, id) {
+app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, items, requestsService, id, supplier) {
   $scope.id = id;
-  if (id > 0){$scope.request = requestsService.getRequest(id); $scope.request.dateSupplied = "";}
+  $scope.suppliers = requestsService.getSuppliers();
+  $scope.permissions = requestsService.getUser().permissions;
+  
+  
+  if ($scope.permissions !== "admin"){
+      setTimeout(function(){$('.admin').css({"background-color" : "#f5f5f5"});}, 500);
+      
+  }
+  
+  if (supplier && id > 0){$scope.supplier = requestsService.getSupplier(id);}
+  else if (id > 0){$scope.request = requestsService.getRequest(id); $scope.request.dateSupplied = "";}
+  
+  
+
   $scope.items = items;
   $scope.selected = {
     item: $scope.items[0]
@@ -251,18 +341,38 @@ app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, 
             quantity:$scope.request['quantity'],
             size:$scope.request['size'],
             status:$scope.request['status'],
-            accountNumber:$scope.request['accountNumber']};
+            accountNumber:$scope.request['accountNumber'],
+            permit:$scope.request['permit'],
+            permitNumber:$scope.request['permitNumber']};
 
 
-        requestsService.insertRequest(toBeInserted);
-        $scope.request = {};
+
+        if (requestsService.checkAccount($scope.request['accountNumber'])){
+            requestsService.insertRequest(toBeInserted);
+            $scope.request = {};            
+            $scope.ok();
+        }
+        else{
+            alert("Account Number was invalid");
+        }
+        
+        
     };
+    
+    $scope.updateRequest = function(){
+        requestsService.updateRequest(id, $scope.request);
+         $scope.ok();
+    };   
+    
 
-    $scope.deleteRequest = function (id) {
+    $scope.deleteRequest = function () {
         requestsService.deleteRequest(id);
     };     
     
   $scope.ok = function () {
+    if ($scope.open){
+        setTimeout(function(){$('.newModal').click();}, 500);
+    }
     $modalInstance.close($scope.selected.item);
   };
 
@@ -271,11 +381,6 @@ app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, 
   };
   
 
-  
-  $scope.go = function ( path ) {
-  $location.path( path );
-    };
-  
   
     //for autocomplete
     $scope.changeClass = function (options) {
@@ -291,19 +396,13 @@ app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, 
             onlySelectValid: true,
             outHeight: 50,
             source: function (request, response) {
-                var data = [
-                            "This is a description of the item",
-                            "A recent item description",
-                            "Another recent item description",
-                            "This one",
-                            "Descriptions get saved for suggestions automatically when you make a new request"
-                    ];
+                    var data = requestsService.getDescriptions();
                     
                     data = $scope.descriptionOptions.methods.filter(data, request.term);
 
                     if (!data.length) {
                         data.push({
-                            label: 'not found',
+                            label: 'Not Found',
                             value: null
                         });
                     }
@@ -333,30 +432,14 @@ app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, 
             onlySelectValid: true,
             outHeight: 50,
             source: function (request, response) {
-                var data = [
-                            "SC B 1",
-                            "SC B 2",
-                            "SC B 3",
-                            "SC B 4",
-                            "SC C 1",
-                            "SC C 2",
-                            "SC C 3",
-                            "SC C 4",
-                            "SC D 1",
-                            "SC D 2",
-                            "SC D 3",
-                            "SC D 4",
-                            "SC A 1",
-                            "SC A 2",
-                            "SC A 3",
-                            "SC A 4"
-                    ];
+                
+                    var data = requestsService.getRooms();
                     
                     data = $scope.destinationRoomOptions.methods.filter(data, request.term);
 
                     if (!data.length) {
                         data.push({
-                            label: 'not found',
+                            label: 'Not Found',
                             value: null
                         });
                     }
@@ -379,7 +462,90 @@ app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, 
         };        
         
         
+        $scope.insertSupplier = function(){
+            requestsService.insertSupplier($scope.supplier);
+            $scope.supplier = {};            
+            $scope.ok();            
+        };
+        
+        $scope.editSupplier = function(){
+            requestsService.updateSupplier(id,$scope.supplier);
+            $scope.supplier = {};            
+            $scope.ok();              
+        };
+        $scope.deleteSupplier = function(){
+            requestsService.deleteSupplier(id);          
+            $scope.ok();            
+        };        
         
         
-  
 });
+
+
+
+
+app.controller('SupplierController', function ($scope, requestsService,$location) {
+    
+    init();
+    
+    function init(){
+        $scope.currentPage = 1;
+        $scope.pageSize = 10;        
+        $scope.orderByField = "id";
+        $scope.sortReverse = true;
+        
+        $scope.suppliers = requestsService.getSuppliers();
+        
+        
+
+      
+    }
+    
+
+    
+    $scope.changeOrder = function (header) {
+        $scope.orderByField = header; 
+        $scope.sortReverse = !$scope.sortReverse;
+
+    };
+    
+    $scope.changePageSize = function (size) {
+        
+        $scope.pageSize = size; 
+
+
+    };    
+    
+
+});
+
+
+
+
+app.controller('SupplierViewController', function ($scope, $routeParams, requestsService) {
+    $scope.supplier = {};
+
+    
+
+    init();
+
+    function init() {
+    
+        var supplierID = ($routeParams.supID) ? parseInt($routeParams.supID) : 0;
+        if (supplierID > 0) {
+
+            $scope.supplier = requestsService.getSupplier(supplierID);
+        }
+    
+        
+        
+    }    
+});
+
+
+
+
+
+
+
+

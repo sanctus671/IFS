@@ -17,12 +17,6 @@ app.config(function ($routeProvider) {
                 controller: 'MainViewController',
                 templateUrl: 'app/partials/standardview.html'
             })
-        //for editing a request
-        .when('/standardedit/:reqID',
-            {
-                controller: 'MainViewController',
-                templateUrl: 'app/partials/standardview.html'
-            })
             
         //for manager user
         .when('/manager',
@@ -62,6 +56,18 @@ app.config(function ($routeProvider) {
                 controller: 'MainViewController',
                 templateUrl: 'app/partials/adminview.html'
             })     
+        .when('/adminsuppliers',
+            {
+                controller: 'SupplierController',
+                templateUrl: 'app/partials/adminsuppliers.html'
+            }) 
+        .when('/adminsuppliersview/:supID',
+            {
+                controller: 'SupplierViewController',
+                templateUrl: 'app/partials/adminsuppliersview.html'
+            })             
+            
+            
         //default to standard
         .otherwise({ redirectTo: '/standard' });
 });

@@ -1,16 +1,67 @@
-<!DOCTYPE html>
-<!--
-To change this license header, choose License Headers in Project Properties.
-To change this template file, choose Tools | Templates
-and open the template in the editor.
--->
-<html>
-    <head>
-        <title>TODO supply a title</title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    </head>
-    <body>
-        <div>TODO write content</div>
-    </body>
-</html>
+﻿<div class="view" >
+    <div class="container">
+
+
+        <div style="padding-bottom: 20px;padding-left: 10px;"><a href="#/admin" class="btn btn-default back-button"><span class="fa fa-arrow-left"></span> Go Back</a></div>
+<div class="panel panel-default">
+  <!-- Default panel contents -->
+  <div class="panel-heading">
+            <h2 style="display:inline;">Details for Request {{ request.id}}</h2>
+            <div style="display:inline;float:right;">
+                <button class="btn btn-default"  ng-controller="ModalCtrl" ng-click="open('lg',request.id)" title="Reorder the same request">Reorder</button> 
+                <button class="btn btn-default " ng-controller="ModalCtrl" ng-click="openEdit('lg',request.id)" title="Edit request"><i class="fa fa-pencil-square-o"></i></button> 
+                <button class="btn btn-default" ng-controller="ModalCtrl" ng-click="confirmDelete('sm',request.id)" title="Delete request"><i class="fa fa-times"></i></button>
+                <a class="btn btn-default" style="color:black;" href="mailto:{{request.email}}" title="Send email to requestor"><i class="fa fa-send"></i></a>
+            </div>    
+  
+  
+  </div>
+
+
+  <!-- Table -->
+  <table class="table table-bordered ">
+      <tbody>
+          <tr>
+              <td><span class="column">Request ID:</span> {{ request.id}}</td>
+              <td><span class="column">Status:</span> {{ request.status}}</td>
+              <td><span class="column">Date Created:</span> {{ request.date | date:'dd/MM/yyyy'}}</td>
+          </tr>
+          <tr>
+              <td><span class="column">Name:</span> {{ request.name}}</td>
+              <td><span class="column">Phone:</span> {{ request.phone}}</td>
+              <td><span class="column">Email:</span> {{ request.email}}</td>
+          </tr>
+          <tr>
+              <td><span class="column">Type:</span> {{ request.type}}</td>
+              <td><span class="column">Destination Room:</span> {{ request.destinationRoom}}</td>
+              <td><span class="column">Item Description:</span> {{ request.itemDescription}}</td>
+          </tr>
+          <tr>
+              <td><span class="column">Quality:</span> {{ request.quality}}</td>
+              <td><span class="column">Size:</span> {{ request.size}}</td>
+              <td><span class="column">Quantity:</span> {{ request.quantity}}</td>
+          </tr>
+          <tr>
+              <td><span class="column">Verteré:</span> {{ request.vertere}}</td>
+              <td><span class="column">Notes:</span> {{ request.notes}}</td>
+              <td><span class="column">CAS:</span> {{ request.cas}}</td>
+          </tr>
+          <tr>
+              <td><span class="column">Account Number:</span> {{ request.accountNumber}}</td>
+              <td><span class="column">Supplier:</span> {{ request.supplier}}</td>
+              <td><span class="column">Supplied Date:</span> {{request.dateSupplied | date:'dd/MM/yyyy'}}</td>
+          </tr>
+          <tr>
+              <td><span class="column">Admin:</span> {{ request.adminName}}</td>
+              <td><span class="column">Cost:</span> {{ request.cost}}</td>
+              <td><span class="column">Admin Notes:</span> {{ request.adminNotes}}</td>
+          </tr>
+          <tr>
+              <td><span class="column">Analysis Code:</span> {{ request.analysisCode}}</td>
+              <td><span class="column">Permit:</span> {{ request.permit}}</td>
+              <td><span class="column">Permit Number:</span> {{ request.permitNumber}}</td>
+          </tr>          
+      </tbody>
+</table>
+
+<script>$('.myorders').removeClass('active');</script> 

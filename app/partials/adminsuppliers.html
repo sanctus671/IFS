@@ -1,0 +1,56 @@
+﻿<div class="requests view">
+    <div class="container">
+          <div class="panel panel-default">
+            <div class="panel-body">
+
+              <table class="table table-hover">
+
+                  <thead>
+                      <tr>
+                          <th style="border-bottom:none;width:40%"><a href="" ng-click="changeOrder('id')">Supplier ID <span ng-show="orderByField === 'id'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
+                          
+                          <th style="border-bottom:none;width:40%"><a href="" ng-click="changeOrder('name')">Name <span ng-show="orderByField === 'name'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
+
+                          <th style="border-bottom:none;width:20%;"><a href="" class="btn btn-default" ng-controller="ModalCtrl" ng-click="openSupplier('lg',0)" style="float:right;"><i class="fa fa-file"></i> New Supplier</a></th>
+                      </tr>
+                  </thead>  
+                  <tbody>
+                <tr dir-paginate="supplier in suppliers | orderBy:orderByField:sortReverse | itemsPerPage: pageSize | filter:q" current-page="currentPage">
+                    <td><a href="#/adminsuppliersview/{{supplier.id}}" class="btn-link" title="View all details for this supplier">{{supplier.id}}</a></td>
+                    <td>{{supplier.name}}</td>
+
+                    <td>
+                        <div class="other-options" style="float:right;">
+                        <button class="btn btn-default " ng-controller="ModalCtrl" ng-click="openEditSupplier('lg',supplier.id)" title="Edit supplier"><i class="fa fa-pencil-square-o"></i></button> 
+                        <button class="btn btn-default" ng-controller="ModalCtrl" ng-click="confirmDeleteSupplier('sm',supplier.id)"  title="Delete supplier"><i class="fa fa-times"></i></button>
+                        </div>
+                    </td>
+                        
+
+                
+                
+                
+                </tr>
+              </tbody>
+                
+             </table>
+            </div>
+          </div>        
+        
+        <dir-pagination-controls boundary-links="true" on-page-change="pageChangeHandler(newPageNumber)" template-url="app/directives/pagination/dirPagination.tpl.html"></dir-pagination-controls>
+        <div class="pagination-options" style="display:inline; float:right; margin-top:25px;">
+
+            <label for="search">items per page:</label>
+            <a href="" ng-click="changePageSize('10')">10</a> | <a href="" ng-click="changePageSize('25')">25</a> | <a href="" ng-click="changePageSize('50')">50</a> | <a href="" ng-click="changePageSize('100')">100</a> | <a href="" ng-click="changePageSize('200')">200</a>
+
+        </div>
+
+    </div>
+</div>
+
+ 
+<script>
+    $('.suppliers').addClass('active');
+    $('.myorders').removeClass('active');
+    
+</script>
