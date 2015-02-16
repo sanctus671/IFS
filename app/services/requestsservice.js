@@ -5,6 +5,15 @@ app.service('requestsService', function () {
         return user;
     };
     
+    this.getUserGroup = function(id){
+        for (var i = 0; i < userGroups.length; i++) {
+            if (userGroups[i].id === id) {
+                return userGroups[i];
+            }
+        }
+        return null;
+    };    
+    
     this.changePermissions = function(permission){
         user.permissions = permission;
     };
@@ -24,13 +33,24 @@ app.service('requestsService', function () {
         }
         return descriptions;
     };
+    
+    this.getAnalysisCodesAutoComplete = function(){
+        var codes = [];
+        for (var index in analysisCodes){
+            var code = analysisCodes[index].code;
+            codes.push(code);
+        }
+        return codes;
+    };     
 
     this.getRooms = function(){
         return rooms;
     };
     
+     
+    
     this.checkAccount = function(accountNumber){
-        if (accountNumber.length < 11){
+        if (accountNumber.length < 9){
             return false;
         }
         return true;
@@ -40,7 +60,49 @@ app.service('requestsService', function () {
 /* END AUTO COMPLETE / VALIDATION FUNCTIONS */ 
 
 
-
+/*ANALYSIS CODE FUNCTIONS */
+    this.getAnalysisCodes = function(){
+        
+        return analysisCodes;
+    }; 
+    
+    this.getAnalysisCode = function(id){
+        for (var i = 0; i < analysisCodes.length; i++) {
+            if (analysisCodes[i].id === id) {
+                return analysisCodes[i];
+            }
+        }
+        return null;
+    };
+    
+    this.insertAnalysisCode = function(data){
+        var topID = analysisCodes.length + 1;
+        data["id"] = topID;
+        analysisCodes.push(data);
+    };     
+    this.updateAnalysisCode = function(id,data){
+        for (var i = 0; i < analysisCodes.length; i++) {
+            if (analysisCodes[i].id === id) {
+                for (var x in data){
+                    analysisCodes[i][x] = data[x];
+                }
+                return;
+            }
+        }
+    }; 
+    
+    this.deleteAnalysisCode = function(id){
+        for (var i = analysisCodes.length - 1; i >= 0; i--) {
+            if (analysisCodes[i].id === id) {
+                analysisCodes.splice(i, 1);
+                break;
+            }
+        }
+    };     
+    
+    
+    
+/*END ANALYSIS CODE FUNCTIONS */
 
 
 
@@ -93,12 +155,17 @@ app.service('requestsService', function () {
             //get all requests
             return requests;
         }
-        else if (user.permissions === "manager"){
-            //get requests under this manager 
-            return requests;
-        }
-        else if (user.permissions === "accountant"){
-            //get requests under this accountant
+
+        else if (user.permissions === "accountant" || user.permissions === "manager"){
+            //get requests under this accountant or manaer
+            var users = [];
+            for (var i = 0; i < userGroups.length; i++) {
+                if (userGroups[i].id === user.groupid) {
+                    users = userGroups[i].users;
+                }
+            }
+            
+            requests = requests.filter(function(x){return users.indexOf(x.userid) > -1});
             return requests;
         }
         //otherwise just get the requests for this user
@@ -111,7 +178,7 @@ app.service('requestsService', function () {
     this.insertRequest = function (data) {
         var topID = requests.length + 1;
         data["id"] = topID;
-        data["status"] = "Ordered";
+        data["status"] = "Requested";
         
         //get current date in correct format
         var today = new Date();var dd = today.getDate();var mm = today.getMonth()+1;var yyyy = today.getFullYear();
@@ -128,13 +195,21 @@ app.service('requestsService', function () {
     };
     
     this.updateRequest = function (id,data) {
+        //need to detect it is the first time it is changed to this status
+        
+        if (user.permissions === "admin" && data["status"] === "Received"){
+            data["adminName"] = user.name;
+        }
         for (var i = 0; i < requests.length; i++) {
             if (requests[i].id === id) {
+
+
                 for (var x in data){
-                    if (x === 'dateSupplied' && requests[i]['status'] === 'Supplied'){
+                    if (x === 'dateSupplied' && data['status'] === 'Supplied' && user.permissions === "admin"){
                         var today = new Date();var dd = today.getDate();var mm = today.getMonth()+1;var yyyy = today.getFullYear();
                         if(dd<10) {dd='0'+dd;} if(mm<10) {mm='0'+mm;} today = dd+'/'+mm+'/'+yyyy;                             
-                        data[x] = today;
+                        //data[x] = today;
+                        requests[i][x] = today;
                     }
                     else{
                         requests[i][x] = data[x];
@@ -202,8 +277,17 @@ app.service('requestsService', function () {
 
 
 //dumby data
-    var user = {id: 1, name:"John Doe", phone:"1234567", email:"johndoe@massey.ac.nz", permissions:"admin", group:"Toms manager group"};
+    var user = {id: 1, name:"John Doe", phone:"1234567", email:"johndoe@massey.ac.nz", permissions:"admin", groupid:2};
     
+    var userGroups = [
+        {
+            id: 1, name:"Toms manager group",users:[1]
+            
+        } ,
+        {
+            id: 2, name:"Jims accoutnant group", users:[2]
+            
+        }];
         
         
         
@@ -237,7 +321,15 @@ app.service('requestsService', function () {
                             "SC A 4"]
     
     
-    
+    var analysisCodes = [
+        {
+            id: 1, code:"abcde"
+            
+        } ,
+        {
+            id: 2, code:"fghijk"
+            
+        }];    
     
     
     
@@ -245,14 +337,14 @@ app.service('requestsService', function () {
     
     var requests = [
         {
-            id: 1, status: 'Supplied',date: new Date('2014-12-20'), userid: 1,name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
+            id: 1, status: 'Supplied',date: new Date('2014-12-20'), adminName: 'John Doe', userid: 1,name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
             type:'Chemical',itemDescription: 'This is a description of the item',quality:1,size:2, quantity:3,destinationRoom:'SC B 1',notes:'Some Notes', 
             cas:'1234444', vertere: '213234', accountNumber: 'GL123456789', analysisCode: 'wezxy' ,dateSupplied:new Date('2014-12-21'), adminNotes: 'This has been ordered', 
             adminName:'Bob', cost: '$123', supplier: 'Person'
             
         } ,
         {
-            id: 2, status: 'Ordered',date: new Date('2014-12-21'), userid: 1,name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
+            id: 2, status: 'Requested',date: new Date('2014-12-21'), adminName: 'John Doe', userid: 1,name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
             type:'Chemical',itemDescription: 'This is a description of the item',quality:1,size:2, quantity:3,destinationRoom:'SC B 2',notes:'Some Notes', 
             cas:'1234444', vertere: '213234', accountNumber: 'GL123456789', analysisCode: 'wezxy' ,dateSupplied:'', adminNotes: '', 
             cost: '', supplier: ''
@@ -266,86 +358,86 @@ app.service('requestsService', function () {
             
         } ,
         {
-            id: 4, status: 'Ordered',date: new Date('2014-12-22'), userid: 1,name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
+            id: 4, status: 'Requested',date: new Date('2014-12-22'), userid: 1,name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
             type:'Chemical',itemDescription: 'This is a description of the item',quality:1,size:2, quantity:3,destinationRoom:'SC B 2',notes:'Some Notes', 
             cas:'1234444', vertere: '213234', accountNumber: 'GL123456789', analysisCode: 'wezxy' ,dateSupplied:'', adminNotes: '', 
             cost: '', supplier: ''
             
         },
         {
-            id: 5, status: 'Ordered',date: new Date('2014-12-22'), userid: 1,name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
+            id: 5, status: 'Requested',date: new Date('2014-12-22'), userid: 1,name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
             type:'Chemical',itemDescription: 'This is a description of the item',quality:1,size:2, quantity:3,destinationRoom:'SC B 2',notes:'Some Notes', 
             cas:'1234444', vertere: '213234', accountNumber: 'GL123456789', analysisCode: 'wezxy' ,dateSupplied:'', adminNotes: '', 
             cost: '', supplier: ''
             
         },
         {
-            id: 6, status: 'Ordered',date: new Date('2014-12-22'), userid: 1,name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
+            id: 6, status: 'Requested',date: new Date('2014-12-22'), userid: 1,name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
             type:'Chemical',itemDescription: 'This is a description of the item',quality:1,size:2, quantity:3,destinationRoom:'SC D 4',notes:'Some Notes', 
             cas:'1234444', vertere: '213234', accountNumber: 'GL123456789', analysisCode: 'wezxy' ,dateSupplied:'', adminNotes: '', 
             cost: '', supplier: ''
             
         } ,
         {
-            id: 7, status: 'Received',date: new Date('2014-12-23'), userid: 1,name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
+            id: 7, status: 'Received',date: new Date('2014-12-23'), adminName: 'John Doe', userid: 1,name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
             type:'Chemical',itemDescription: 'This is a description of the item',quality:1,size:2, quantity:3,destinationRoom:'SC B 2',notes:'Some Notes', 
             cas:'1234444', vertere: '213234', accountNumber: 'GL123456789', analysisCode: 'wezxy' ,dateSupplied:'', adminNotes: 'Almost ready', 
             cost: '$560', supplier: 'Guy'
             
         },
         {
-            id: 8, status: 'Ordered',date: new Date('2014-12-23'), userid: 1,name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
+            id: 8, status: 'Requested',date: new Date('2014-12-23'),  userid: 1,name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
             type:'Chemical',itemDescription: 'This is a description of the item',quality:1,size:2, quantity:3,destinationRoom:'SC B 2',notes:'Some Notes', 
             cas:'1234444', vertere: '213234', accountNumber: 'GL123456789', analysisCode: 'wezxy' ,dateSupplied:'', adminNotes: '', 
             cost: '', supplier: ''
             
         },
         {
-            id: 9, status: 'Cancelled',date: new Date('2014-12-23'), userid: 1,name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
+            id: 9, status: 'Cancelled',date: new Date('2014-12-23'), adminName: 'John Doe', userid: 1,name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
             type:'Chemical',itemDescription: 'This is a description of the item',quality:1,size:2, quantity:3,destinationRoom:'SC B 2',notes:'Some Notes', 
             cas:'1234444', vertere: '213234', accountNumber: 'GL123456789', analysisCode: 'wezxy' ,dateSupplied:'', adminNotes: '', 
             cost: '', supplier: ''
             
         } ,
         {
-            id: 10, status: 'Ordered',date: new Date('2014-12-23'), userid: 1,name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
+            id: 10, status: 'Requested',date: new Date('2014-12-23'), userid: 1,name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
             type:'Chemical',itemDescription: 'This is a description of the item',quality:1,size:2, quantity:3,destinationRoom:'SC B 2',notes:'Some Notes', 
             cas:'1234444', vertere: '213234', accountNumber: 'GL123456789', analysisCode: 'wezxy' ,dateSupplied:'', adminNotes: '', 
             cost: '', supplier: ''
             
         },
         {
-            id: 11, status: 'Ordered',date: new Date('2014-12-24'), userid: 1,name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
+            id: 11, status: 'Requested',date: new Date('2014-12-24'),  userid: 1,name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
             type:'Chemical',itemDescription: 'This is a description of the item',quality:1,size:2, quantity:3,destinationRoom:'SC D 2',notes:'Some Notes', 
             cas:'1234444', vertere: '213234', accountNumber: 'GL123456789', analysisCode: 'wezxy' ,dateSupplied:'', adminNotes: '', 
             cost: '', supplier: ''
             
         },
         {
-            id: 12, status: 'Ordered',date: new Date('2014-12-27'), userid: 1,name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
+            id: 12, status: 'Requested',date: new Date('2014-12-27'), userid: 1,name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
             type:'Chemical',itemDescription: 'This is a description of the item',quality:1,size:2, quantity:3,destinationRoom:'SC B 2',notes:'Some Notes', 
             cas:'1234444', vertere: '213234', accountNumber: 'GL123456789', analysisCode: 'wezxy' ,dateSupplied:'', adminNotes: '', 
             cost: '', supplier: ''
             
         } ,
         {
-            id: 13, status: 'Incorrect',date: new Date('2015-01-05'), userid: 1, name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
+            id: 13, status: 'Incorrect',date: new Date('2015-01-05'), adminName: 'John Doe', userid: 1, name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
             type:'Chemical',itemDescription: 'This is a description of the item',quality:1,size:2, quantity:3,destinationRoom:'SC A 1',notes:'Some Notes', 
             cas:'1234444', vertere: '213234', accountNumber: 'GL123456789', analysisCode: 'wezxy' ,dateSupplied:'', adminNotes: '', 
             cost: '', supplier: ''
             
         },
         {
-            id: 14, status: 'Ordered',date: new Date('2015-01-05'), userid: 2, name:'Jane Doe', phone:'1234567', email:'janedoe@massey.ac.nz', 
+            id: 14, status: 'Requested',date: new Date('2015-01-05'), userid: 2, name:'Jane Doe', phone:'1234567', email:'janedoe@massey.ac.nz', 
             type:'Chemical',itemDescription: 'This is a description of the item',quality:1,size:2, quantity:3,destinationRoom:'SC A 1',notes:'Some Notes', 
             cas:'1234444', vertere: '213234', accountNumber: 'GL123456789', analysisCode: 'wezxy' ,dateSupplied:'', adminNotes: '', 
             cost: '', supplier: ''
             
         },
         {
-            id: 15, status: 'Ordered',date: new Date('2015-01-05'), userid: 2, name:'Jane Doe', phone:'1234567', email:'janedoe@massey.ac.nz', 
+            id: 15, status: 'Requested',date: new Date('2015-01-05'), userid: 2, name:'Jane Doe', phone:'1234567', email:'janedoe@massey.ac.nz', 
             type:'Chemical',itemDescription: 'This is a description of the item',quality:1,size:2, quantity:3,destinationRoom:'SC A 1',notes:'Some Notes', 
-            cas:'1234444', vertere: '213234', accountNumber: 'GL123456789', analysisCode: 'wezxy' ,dateSupplied:'', adminNotes: '', 
+            cas:'1234444', vertere: '213234', accountNumber: '123456789', accountNumberPrefix: 'GL', analysisCode: 'wezxy' ,dateSupplied:'', adminNotes: '', 
             cost: '', supplier: ''
             
         }        

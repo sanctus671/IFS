@@ -138,3 +138,7 @@ width: 150px;
     display:none;
 }
 
+.adminrequest{
+    background-color:#ccc;
+    border-radius:5px;
+}

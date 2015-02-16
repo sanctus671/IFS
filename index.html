@@ -27,17 +27,26 @@
     <!-- Collect the nav links, forms, and other content for toggling -->
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1" >
       <ul class="nav navbar-nav nav-tabs" ng-controller="MainController">
-          <li class="myorders active"><a href="#/{{permissions}}" title="View all order history"><i class="fa fa-list"></i> <span ng-show="permissions !== 'admin'">My </span>Requests</a></li>
+          <li class="myorders active"><a href="#/{{permissions}}" title="View all order history"><i class="fa fa-list"></i> <span ng-show="permissions === 'standard'">My </span>Requests</a></li>
         <li class="suppliers" ng-show="permissions === 'admin'"><a href="#/{{permissions}}suppliers" title="View and change supplier details"><i class="fa fa-truck"></i> Suppliers</a></li>
+        <li class="codes" ng-show="permissions === 'admin'"><a href="#/{{permissions}}codes" title="View and change analysis codes"><i class="fa fa-credit-card"></i> Analysis Codes</a></li>
         <a href="#" ng-click="change();" class="change" style="display:none;">&nbsp;</a>
 
       </ul>
-        <ul class="nav navbar-nav nav-pills">
-        <li ng-controller="ModalCtrl"><a href="" class="newModal" ng-click="open('lg', 0)" title="Create a new request"><i class="fa fa-file"></i> New Request</a></li>    
+        <ul class="nav navbar-nav nav-pills" ng-controller="MainController" ng-show="permissions === 'standard' || permissions === 'admin' ">
+        <li ng-controller="ModalCtrl" ><a href="" class="newModal" ng-click="open('lg', 0)" title="Create a new request"><i class="fa fa-file"></i> New Request</a></li>    
         </ul>
       <ul class="nav navbar-nav navbar-right">
           
-          
+        <li role="presentation" class="dropdown" style="margin-top: 8px;margin-right: 15px;">
+            <button class="dropdown-toggle btn btn-default" title="Export all requests" data-toggle="dropdown" role="button" data-aria-expanded="false" style="color:black;">
+                Export <span class="caret"></span>
+            </button>
+        <ul class="dropdown-menu" role="menu">
+            <li><a href="javascript:void(0);" target="_blank" onclick="$('.table').tableExport({type:'pdf',escape:'false',pdfFontSize:'7'});" style="color:black;">Export as PDF</a></li>
+            <li><a href="javascript:void(0);" target="_blank" onclick="$('.table').tableExport({type:'csv',escape:'false'});" style="color:black;">Export as CSV</a></li>
+        </ul>
+        </li>            
           
           
         <li ng-controller="ModalCtrl"><button ng-click="openFilter('md')" class="btn btn-default" style="margin-top: 8px;" title="Filter all requests"><i class="fa fa-filter"></i></button></li>
@@ -78,6 +87,14 @@
     <!-- UI Libs -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
 
+    <!-- Export Libs -->    
+    <script type="text/javascript" src="scripts/tableExport.js"></script>
+    <script type="text/javascript" src="scripts/jquery.base64.js"></script>
+    <script type="text/javascript" src="scripts/jspdf/libs/sprintf.js"></script>
+    <script type="text/javascript" src="scripts/jspdf/jspdf.js"></script>
+    <script type="text/javascript" src="scripts/jspdf/libs/base64.js"> </script>   
+    
+    
     <!-- App libs -->
     
     <script src="app/app.js"></script>

@@ -8,10 +8,19 @@
   <div class="panel-heading">
             <h2 style="display:inline;">Details for Request {{ request.id}}</h2>
             <div style="display:inline;float:right;">
-                <button class="btn btn-default"  ng-controller="ModalCtrl" ng-click="open('lg',request.id)" title="Reorder the same request">Reorder</button> 
+                <div role="presentation" class="dropdown" style="display: inline;">
+                    <a class="dropdown-toggle btn btn-default" title="Export single request" data-toggle="dropdown" href="javascript:void(0);" role="button" data-aria-expanded="false" style="color:black;">
+                        Export <span class="caret"></span>
+                    </a>
+                <ul class="dropdown-menu" role="menu">
+                    <li><a href="javascript:void(0);" target="_blank" onclick="$('.table').tableExport({type:'pdf',escape:'false',pdfFontSize:'7'});" style="color:black;">Export as PDF</a></li>
+                    <li><a href="javascript:void(0);" target="_blank" onclick="$('.table').tableExport({type:'csv',escape:'false'});" style="color:black;">Export as CSV</a></li>
+                </ul>
+                </div>               
+
                 <button class="btn btn-default " ng-controller="ModalCtrl" ng-click="openEdit('lg',request.id)" title="Edit request"><i class="fa fa-pencil-square-o"></i></button> 
                 <button class="btn btn-default" ng-controller="ModalCtrl" ng-click="confirmDelete('sm',request.id)" title="Delete request"><i class="fa fa-times"></i></button>
-                <a class="btn btn-default" style="color:black;" href="mailto:{{request.email}}" title="Send email to requestor"><i class="fa fa-send"></i></a>
+                <a class="btn btn-default" style="color:black;" href="mailto:{{request.email}}?subject=IFS%20Request%20{{request.id}}&body=Request:%20{{request.id}}%0D%0ADescription:%20{{request.itemDescription}}%0D%0AView%20request:http:%2F%2Fmassey-ifs.azurewebsites.net%2F#%2Fstandardview%2F{{request.id}}" title="Send email to requestor"><i class="fa fa-send"></i></a>
             </div>    
   
   
@@ -47,7 +56,7 @@
               <td><span class="column">CAS:</span> {{ request.cas}}</td>
           </tr>
           <tr>
-              <td><span class="column">Account Number:</span> {{ request.accountNumber}}</td>
+              <td><span class="column">Account Number:</span> {{ request.accountNumberPrefix + request.accountNumber}}</td>
               <td><span class="column">Supplier:</span> {{ request.supplier}}</td>
               <td><span class="column">Supplied Date:</span> {{request.dateSupplied | date:'dd/MM/yyyy'}}</td>
           </tr>
@@ -60,7 +69,12 @@
               <td><span class="column">Analysis Code:</span> {{ request.analysisCode}}</td>
               <td><span class="column">Permit:</span> {{ request.permit}}</td>
               <td><span class="column">Permit Number:</span> {{ request.permitNumber}}</td>
-          </tr>          
+          </tr>  
+          <tr>
+              <td><span class="column">Payment Type:</span> {{ request.paymentType}}</td>
+              <td><span class="column">PN Number:</span> {{ request.pnNumber}}</td>
+              <td><span class="column">&nbsp;</td>
+          </tr>            
       </tbody>
 </table>
 

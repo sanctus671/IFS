@@ -66,7 +66,16 @@ app.config(function ($routeProvider) {
                 controller: 'SupplierViewController',
                 templateUrl: 'app/partials/adminsuppliersview.html'
             })             
-            
+        .when('/admincodes',
+            {
+                controller: 'CodeController',
+                templateUrl: 'app/partials/admincodes.html'
+            }) 
+        .when('/admincodesview/:codeID',
+            {
+                controller: 'CodeViewController',
+                templateUrl: 'app/partials/admincodesview.html'
+            })             
             
         //default to standard
         .otherwise({ redirectTo: '/standard' });

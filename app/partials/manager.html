@@ -1,16 +1,55 @@
-<!DOCTYPE html>
-<!--
-To change this license header, choose License Headers in Project Properties.
-To change this template file, choose Tools | Templates
-and open the template in the editor.
--->
-<html>
-    <head>
-        <title>TODO supply a title</title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    </head>
-    <body>
-        <div>TODO write content</div>
-    </body>
-</html>
+﻿<div class="requests view">
+    <div class="container">
+          <div class="panel panel-default">
+            <div class="panel-body">
+
+              <table class="table table-hover">
+
+                  <thead>
+                      <tr>
+                          <th style="border-bottom:none;width:12.5%"><a href="" ng-click="changeOrder('id')">Request ID <span ng-show="orderByField === 'id'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
+                          
+                          <th style="border-bottom:none;width:14%"><a href="" ng-click="changeOrder('date')">Date Created <span ng-show="orderByField === 'date'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
+                          <th style="border-bottom:none;width:30%"><a href="" ng-click="changeOrder('itemDescription')">Item Description <span ng-show="orderByField === 'itemDescription'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
+                          <th style="border-bottom:none;width:12.5%"><a href="" ng-click="changeOrder('status')">Status <span ng-show="orderByField === 'status'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
+                          <th style="border-bottom:none;width:20%"><a href="" ng-click="changeOrder('accountNumberPrefix')">Account Number <span ng-show="orderByField === 'accountNumberPrefix'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
+                      </tr>
+                  </thead>  
+                  <tbody>
+                <tr dir-paginate="request in requests | orderBy:orderByField:sortReverse | itemsPerPage: pageSize | filter:q" current-page="currentPage" ng-if="request.filtered !== 1">
+                    <td><a href="#/managerview/{{request.id}}" class="btn-link" title="View all details for this request">{{request.id}}</a></td>
+                    <td>{{request.date | date:'dd/MM/yyyy'}}</td>
+                    <td>{{request.itemDescription}}</td>
+                    <td>{{request.status}}</td>
+                    <td>{{request.accountNumberPrefix + request.accountNumber}}</td>
+                    <td>
+                        <div class="other-options" style="float:right;">
+
+                        </div>
+                    </td>
+                        
+
+                
+                
+                
+                </tr>
+              </tbody>
+                
+             </table>
+            </div>
+          </div>        
+        
+        <dir-pagination-controls boundary-links="true" on-page-change="pageChangeHandler(newPageNumber)" template-url="app/directives/pagination/dirPagination.tpl.html"></dir-pagination-controls>
+        <div class="pagination-options" style="display:inline; float:right; margin-top:25px;">
+
+            <label for="search">items per page:</label>
+            <a href="" ng-click="changePageSize('10')">10</a> | <a href="" ng-click="changePageSize('25')">25</a> | <a href="" ng-click="changePageSize('50')">50</a> | <a href="" ng-click="changePageSize('100')">100</a> | <a href="" ng-click="changePageSize('200')">200</a>
+
+        </div>
+        
+        
+        
+    </div>
+</div>
+
+<script>$('.myorders').addClass('active');</script> 

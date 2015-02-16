@@ -6,8 +6,8 @@ app.controller('MainController', function ($scope, requestsService,$location) {
 
     function init() {
         
-        
-        $scope.permissions = requestsService.getUser().permissions;
+        $scope.user = requestsService.getUser()
+        $scope.permissions = $scope.user.permissions;
         
         //check we the correct page is loaded based on the users permissions
         if ($scope.permissions  === 'standard' && $location.path().indexOf("standard") === -1){
@@ -79,7 +79,28 @@ app.controller('MainController', function ($scope, requestsService,$location) {
 });
 
 
-app.controller('MainViewController', function ($scope, $routeParams, requestsService) {
+app.controller('MainViewController', function ($scope, $routeParams, requestsService,$location) {
+    
+    $scope.permissions = requestsService.getUser().permissions;
+
+    //check we the correct page is loaded based on the users permissions
+
+    if ($scope.permissions  === 'standard' && $location.path().indexOf("standard") === -1){
+        document.location.href='/#/standardview/' + $routeParams.reqID;
+    }        
+    else if ($scope.permissions  === 'manager' && $location.path().indexOf("manager") === -1){
+        document.location.href='/#/managerview/' + $routeParams.reqID;
+    }
+    else if ($scope.permissions  === 'accountant' && $location.path().indexOf("accountant") === -1){
+        document.location.href='/#/accountantview/' + $routeParams.reqID;
+    }
+    else if ($scope.permissions  === 'admin' && $location.path().indexOf("admin") === -1){
+        document.location.href='/#/adminview/' + $routeParams.reqID;
+    }    
+    
+    
+    
+    
     $scope.request = {};
 
 
@@ -123,6 +144,9 @@ app.controller('ModalCtrl', function ($scope, $modal, $log) {
         },
         supplier: function() {
             return false;
+        },
+        code: function() {
+            return false;
         }
       }
     });
@@ -149,6 +173,9 @@ app.controller('ModalCtrl', function ($scope, $modal, $log) {
         },
         supplier: function() {
             return false;
+        },
+        code: function() {
+            return false;
         }
       }
     });
@@ -174,6 +201,9 @@ app.controller('ModalCtrl', function ($scope, $modal, $log) {
             return id;
         },
         supplier: function() {
+            return false;
+        },
+        code: function() {
             return false;
         }
       }
@@ -205,6 +235,9 @@ app.controller('ModalCtrl', function ($scope, $modal, $log) {
         },
         supplier: function() {
             return false;
+        },
+        code: function() {
+            return false;
         }        
       }
     });
@@ -232,6 +265,9 @@ app.controller('ModalCtrl', function ($scope, $modal, $log) {
         },
         supplier: function() {
             return true;
+        },
+        code: function() {
+            return false;
         }         
       }
     });
@@ -258,6 +294,9 @@ app.controller('ModalCtrl', function ($scope, $modal, $log) {
         },
         supplier: function() {
             return true;
+        },
+        code: function() {
+            return false;
         }         
       }
     });
@@ -288,6 +327,9 @@ app.controller('ModalCtrl', function ($scope, $modal, $log) {
         },
         supplier: function() {
             return true;
+        },
+        code: function() {
+            return false;
         }        
       }
     });
@@ -299,15 +341,106 @@ app.controller('ModalCtrl', function ($scope, $modal, $log) {
     });
   };  
   
+  $scope.openCode = function (size, id) {
+
+    var modalInstance = $modal.open({
+      templateUrl: 'app/partials/createcode.html',
+      controller: 'ModalInstanceCtrl',
+      size: size,
+      resolve: {
+        items: function () {
+          return $scope.items;
+        },
+        id: function() {
+            return id;
+        },
+        supplier: function() {
+            return false;
+        } ,
+        code: function() {
+            return true;
+        }         
+      }
+    });
+
+    modalInstance.result.then(function (selectedItem) {
+      $scope.selected = selectedItem;
+    }, function () {
+      //$log.info('Modal dismissed at: ' + new Date());
+    });
+  };  
   
+  $scope.openEditCode = function (size,id) {
+      
+    var modalInstance = $modal.open({
+      templateUrl: 'app/partials/editcode.html',
+      controller: 'ModalInstanceCtrl',
+      size: size,
+      resolve: {
+        items: function () {
+          return $scope.items;
+        },
+        id: function() {
+            return id;
+        },
+        supplier: function() {
+            return false;
+        } ,
+        code: function() {
+            return true;
+        }         
+      }
+    });
+
+    modalInstance.result.then(function (selectedItem) {
+      $scope.selected = selectedItem;
+    }, function () {
+      //$log.info('Modal dismissed at: ' + new Date());
+    });
+  };   
+  
+  
+  
+  
+    
+  $scope.confirmDeleteCode = function (size,id) {
+      
+    var modalInstance = $modal.open({
+      templateUrl: 'app/partials/deletecode.html',
+      controller: 'ModalInstanceCtrl',
+      size: size,
+      resolve: {
+        items: function () {
+          return $scope.items;
+        },
+        id: function() {
+            return id;
+        },
+        supplier: function() {
+            return false;
+        } ,
+        code: function() {
+            return true;
+        }        
+      }
+    });
+
+    modalInstance.result.then(function (selectedItem) {
+      $scope.selected = selectedItem;
+    }, function () {
+      //$log.info('Modal dismissed at: ' + new Date());
+    });
+  };    
 });
 
 
 
-app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, items, requestsService, id, supplier) {
+app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, items, requestsService, id, supplier, code) {
   $scope.id = id;
   $scope.suppliers = requestsService.getSuppliers();
   $scope.permissions = requestsService.getUser().permissions;
+  
+  setTimeout(function(){$('[data-toggle="tooltip"]').tooltip({'placement': 'top'});}, 500);
   
   
   if ($scope.permissions !== "admin"){
@@ -316,6 +449,7 @@ app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, 
   }
   
   if (supplier && id > 0){$scope.supplier = requestsService.getSupplier(id);}
+  else if (code && id > 0) {$scope.code = requestsService.getAnalysisCode(id);}
   else if (id > 0){$scope.request = requestsService.getRequest(id); $scope.request.dateSupplied = "";}
   
   
@@ -342,6 +476,7 @@ app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, 
             size:$scope.request['size'],
             status:$scope.request['status'],
             accountNumber:$scope.request['accountNumber'],
+            accountNumberPrefix:$scope.request['accountNumberPrefix'],
             permit:$scope.request['permit'],
             permitNumber:$scope.request['permitNumber']};
 
@@ -459,7 +594,44 @@ app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, 
                     //console.log('select', event, ui);
                 }
             }
-        };        
+        };  
+        
+        
+    $scope.analysisCodeOptions = {
+        options: {
+            html: true,
+            minLength: 1,
+            onlySelectValid: true,
+            outHeight: 50,
+            source: function (request, response) {
+                
+                    var data = requestsService.getAnalysisCodesAutoComplete();
+                    
+                    data = $scope.analysisCodeOptions.methods.filter(data, request.term);
+
+                    if (!data.length) {
+                        data.push({
+                            label: 'Not Found',
+                            value: null
+                        });
+                    }
+                    // add "Add Language" button to autocomplete menu bottom
+                    /*data.push({
+                        label: $compile('<a class="ui-menu-add" ng-click="add()">Add Language</a>')($scope),
+                        value: null
+                    });*/
+                    response(data);
+                }
+            },
+            events: {
+                change: function (event, ui) {
+                    //console.log('change', event, ui);
+                },
+                select: function (event, ui) {
+                    //console.log('select', event, ui);
+                }
+            }
+        };         
         
         
         $scope.insertSupplier = function(){
@@ -476,9 +648,25 @@ app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, 
         $scope.deleteSupplier = function(){
             requestsService.deleteSupplier(id);          
             $scope.ok();            
-        };        
+        }; 
         
         
+        
+        $scope.insertCode = function(){
+            requestsService.insertAnalysisCode($scope.code);
+            $scope.code = {};            
+            $scope.ok();            
+        };
+        
+        $scope.editCode = function(){
+            requestsService.updateAnalysisCode(id,$scope.code);
+            $scope.code = {};            
+            $scope.ok();              
+        };
+        $scope.deleteCode = function(){
+            requestsService.deleteAnalysisCode(id);          
+            $scope.ok();            
+        };         
 });
 
 
@@ -522,6 +710,11 @@ app.controller('SupplierController', function ($scope, requestsService,$location
 
 
 
+
+
+
+
+
 app.controller('SupplierViewController', function ($scope, $routeParams, requestsService) {
     $scope.supplier = {};
 
@@ -545,7 +738,59 @@ app.controller('SupplierViewController', function ($scope, $routeParams, request
 
 
 
+app.controller('CodeController', function ($scope, requestsService,$location) {
+    
+    init();
+    
+    function init(){
+        $scope.currentPage = 1;
+        $scope.pageSize = 10;        
+        $scope.orderByField = "id";
+        $scope.sortReverse = true;
+        
+        $scope.codes = requestsService.getAnalysisCodes();
+        
+        
+
+      
+    }
+    
+
+    
+    $scope.changeOrder = function (header) {
+        $scope.orderByField = header; 
+        $scope.sortReverse = !$scope.sortReverse;
+
+    };
+    
+    $scope.changePageSize = function (size) {
+        
+        $scope.pageSize = size; 
+
+
+    };    
+    
+
+});
 
 
 
+app.controller('CodeViewController', function ($scope, $routeParams, requestsService) {
+    $scope.code = {};
 
+    
+
+    init();
+
+    function init() {
+    
+        var codeID = ($routeParams.codeID) ? parseInt($routeParams.codeID) : 0;
+        if (codeID > 0) {
+
+            $scope.code = requestsService.getAnalysisCode(codeID);
+        }
+    
+        
+        
+    }    
+});

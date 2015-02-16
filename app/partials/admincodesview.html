@@ -1,0 +1,30 @@
+﻿<div class="view" >
+    <div class="container">
+
+
+        <div style="padding-bottom: 20px;padding-left: 10px;"><a href="#/admincodes" class="btn btn-default back-button"><span class="fa fa-arrow-left"></span> Go Back</a></div>
+<div class="panel panel-default">
+  <!-- Default panel contents -->
+  <div class="panel-heading">
+            <h2 style="display:inline;">Details for Analysis Code {{ code.id}}</h2>
+            <div style="display:inline;float:right;">
+                <button class="btn btn-default " ng-controller="ModalCtrl" ng-click="openEditCode('lg',supplier.id)" title="Edit analysis code"><i class="fa fa-pencil-square-o"></i></button> 
+                <button class="btn btn-default" ng-controller="ModalCtrl" ng-click="confirmDeleteCode('sm',supplier.id)" title="Delete analysis code"><i class="fa fa-times"></i></button>
+            </div>    
+  
+  
+  </div>
+
+
+  <!-- Table -->
+  <table class="table table-bordered ">
+      <tbody>
+          <tr>
+              <td><span class="column">Analysis Code ID:</span> {{ code.id}}</td>
+              <td><span class="column">Analysis Code:</span> {{ code.code}}</td>
+          </tr>
+                   
+      </tbody>
+</table>
+
+<script>$('.codes').removeClass('active');</script> 

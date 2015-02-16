@@ -6,6 +6,7 @@
       </div>
         <form class="form-horizontal" ng-submit="insertRequest();">
     <div class="modal-body">    
+        
         <div style="margin: 0 auto;">
             
             
@@ -17,11 +18,11 @@
                 
             <div class="form-group">
                 <div class="col-md-4">
-                    <label class="control-label">Type:</label>
+                    <label class="control-label">Type <a href="javascript:void(0)" class="tooltip-circle" data-toggle="tooltip" title="Classification of the request"><i class="fa fa-question-circle"></i></a>: </label>
                 </div>
                 <div class="col-md-8">
                     <select class="form-control" id="type" ng-model="request.type" required>
-                        <option value="">Select Type</option>
+                        <option value="" disabled selected>Select Type</option>
                         <option value="Chemical">Chemical</option>
                         <option value="Other">Other</option>
                     </select>
@@ -31,7 +32,7 @@
             
             <div class="form-group">
                 <div class="col-md-4">
-                    <label class="control-label">Description:</label>
+                    <label class="control-label">Description <a href="javascript:void(0)" class="tooltip-circle" data-toggle="tooltip" title="Description of the item being requested"><i class="fa fa-question-circle"></i></a>:</label>
                 </div>
                 <div class="col-md-8">
                     <input type="text"  ng-model="request.itemDescription" class="form-control create-description" placeholder="Description" ui-event="{autocompletecreate:'changeClass(descriptionOptions)'}" ui-autocomplete="descriptionOptions" required>
@@ -43,22 +44,22 @@
           
             <div class="form-group" style="padding:15px 0;">
                 <div class="col-md-1">
-                    <label class="control-label">Quality: </label>
+                    <label class="control-label">Quality: <a href="javascript:void(0)" class="tooltip-circle" data-toggle="tooltip" title="Level of purity"><i class="fa fa-question-circle"></i></a></label>
                 </div>
                 <div class="col-md-3">
-                    <input type="number" ng-model="request.quality" class="form-control create-quality" placeholder="Quality">
+                    <input type="number" min="0" ng-model="request.quality" class="form-control create-quality" placeholder="Quality">
                 </div>
                 <div class="col-md-1">
-                    <label class="control-label">Size: </label>
+                    <label class="control-label">Size: <a href="javascript:void(0)" class="tooltip-circle" data-toggle="tooltip" title="The amount per item"><i class="fa fa-question-circle"></i></a></label>
                 </div>
                 <div class="col-md-3"> 
-                    <input type="number" ng-model="request.size" class="form-control create-size" placeholder="Size">
+                    <input type="number" min="0" ng-model="request.size" class="form-control create-size" placeholder="Size">
                 </div>
                 <div class="col-md-1" style="padding-left:0px;"> 
-                    <label class="control-label">Quantity: </label>
+                    <label class="control-label">Quantity: <a href="javascript:void(0)" class="tooltip-circle" data-toggle="tooltip" title="How many of this item in this request"><i class="fa fa-question-circle"></i></a></label>
                 </div>
                 <div class="col-md-3"> 
-                    <input type="number" ng-model="request.quantity" class="form-control create-quantity" placeholder="Quantity">                
+                    <input type="number" min="0" ng-model="request.quantity" class="form-control create-quantity" placeholder="Quantity">                
                 </div>
             </div>
 
@@ -71,27 +72,33 @@
             <div class="panel-body req-details" style="display:none;">   
                 
             <div class="form-group">
-                <div class="col-md-2"  style="width:30%;">
-                    <label class="control-label" >Import Permit Required</label>
+                <div class="col-md-4">
+                    <div class="col-md-2"  style="width:80%;padding-left: 0px;">
+                        <label class="control-label" >Import Permit Required <a href="javascript:void(0)" class="tooltip-circle" data-toggle="tooltip" title="For orders which require a permit e.g. a chemical from overseas"><i class="fa fa-question-circle"></i></a>: </label>
+                    </div>
+                    <div class="col-md-10" style="width:20%;">
+                        <input type="checkbox"  ng-model="request.permit" class="form-control create-permit">
+                    </div>   
                 </div>
-                <div class="col-md-10" style="width:70%;">
-                    <input type="checkbox"  ng-model="request.permit" class="form-control create-permit" style="width:5%;">
-                </div>        
+                <div class="col-md-8" style="margin-top: -15px;">
+                    <div class="form-group" ng-show="request.permit === true" style="padding-bottom: 0px;margin-bottom: 0px;">
+                        <div class="col-md-2" style="width:30%;">
+                            <label class="control-label">Permit Number <a href="javascript:void(0)" class="tooltip-circle" data-toggle="tooltip" title="The permit number (if known)"><i class="fa fa-question-circle"></i></a>: </label>
+                        </div>
+                    <div class="col-md-10" style="width:70%;">
+                        <input type="number"  ng-model="request.permitNumber" class="form-control create-permitno" placeholder="Permit Number" ng-required="request.permit">
+                    </div>        
+                    </div> 
+                </div>
+                
             </div> 
                 
-            <div class="form-group" ng-show="request.permit === true">
-                <div class="col-md-2" style="width:20%;">
-                    <label class="control-label">Permit Number</label>
-                </div>
-                <div class="col-md-10" style="width:80%;">
-                    <input type="number"  ng-model="request.permitNumber" class="form-control create-permitno" placeholder="Permit Number">
-                </div>        
-            </div>  
+
                 
                 
             <div class="form-group" style="padding:15px 0;">
-                <div class="col-md-2" style="width:20%;"> 
-                    <label class="control-label">Destination Room: </label>
+                <div class="col-md-2" style="width:20%;padding-right: 0px;"> 
+                    <label class="control-label">Destination Room <a href="javascript:void(0)" class="tooltip-circle" data-toggle="tooltip" title="The room your wish for this request to be delivered to"><i class="fa fa-question-circle"></i></a>: </label>
                 </div> 
                 <div class="col-md-10" style="width:80%;"> 
                     <input type="text" ng-model="request.destinationRoom" class="form-control create-room" placeholder="Destination Room" ui-event="{autocompletecreate:'changeClass(destinationRoomOptions)'}" ui-autocomplete="destinationRoomOptions" required>
@@ -102,7 +109,7 @@
                 
             <div class="form-group">
                 <div class="col-md-2" style="width:20%;">
-                    <label class="control-label">CAS: </label>
+                    <label class="control-label">CAS <a href="javascript:void(0)" class="tooltip-circle" data-toggle="tooltip" title="Cas number for the item being requested"><i class="fa fa-question-circle"></i></a>: </label>
                 </div>
                 <div class="col-md-10" style="width:80%;">        
                     <input type="text" ng-model="request.cas" class="form-control create-cas" placeholder="CAS" required>
@@ -114,25 +121,34 @@
             
             <div class="form-group">
                 <div class="col-md-2" style="width:20%;">
-                    <label class="control-label">Account Number: </label>
+                    <label class="control-label">Account Number <a href="javascript:void(0)" class="tooltip-circle" data-toggle="tooltip" title="Account number for the account this request should be charged to"><i class="fa fa-question-circle"></i></a>: </label>
                 </div>    
-                <div class="col-md-10" style="width:80%;">    
-                    <input type="text"  ng-model="request.accountNumber" maxlength="11" class="form-control create-acc" placeholder="Account Number" required>
+                <div class="col-md-10 input-group" style="width:80%;padding-right: 15px;padding-left: 15px;">   
+                    <span class="input-group-addon ">
+                        <select class="" ng-model="request.accountNumberPrefix" style="background-color: transparent;border: 0px;" required>
+                            <option value="" disabled selected>Prefix</option>
+                            <option>GL</option>
+                            <option>PR</option>
+                            <option>RM</option>
+                            <option>NP</option>
+                        </select>
+                    </span>
+                    <input type="text"  ng-model="request.accountNumber" maxlength="9" class="form-control create-acc" placeholder="Account Number" required>
                 </div>    
             </div>
                 
             <div class="form-group">
                 <div class="col-md-2" style="width:20%;">
-                    <label class="control-label">Analysis Code: </label>
+                    <label class="control-label">Analysis Code <a href="javascript:void(0)" class="tooltip-circle" data-toggle="tooltip" title="5 alpha-numeric characters designated as your analysis code"><i class="fa fa-question-circle"></i></a>: </label>
                 </div>    
                 <div class="col-md-10" style="width:80%;">    
-                    <input type="text"  ng-model="request.analysisCode" maxlength="5" class="form-control create-code" placeholder="Analysis Code">
+                    <input type="text"  ng-model="request.analysisCode" maxlength="5" class="form-control create-code" placeholder="Analysis Code" ui-event="{autocompletecreate:'changeClass(analysisCodeOptions)'}" ui-autocomplete="analysisCodeOptions" >
                 </div>    
             </div>                
                 
             <div class="form-group">
                     <div class="col-md-12" style="padding-bottom: 10px;"> 
-                        <label class="control-label">Notes: </label>
+                        <label class="control-label">Notes <a href="javascript:void(0)" class="tooltip-circle" data-toggle="tooltip" title="Extra information for the admin viewing the request"><i class="fa fa-question-circle"></i></a>: </label>
                     </div>
                     <div class="col-md-12"> 
                         <textarea ng-model="request.notes" class="form-control create-notes" placeholder="Notes" rows="3"></textarea>
@@ -179,6 +195,47 @@
                 </div>    
             </div>  
                 
+                
+                
+            <div class="form-group">
+                <div class="col-md-2">
+                    <label class="control-label">Payment Type: </label>
+                </div>    
+                <div class="col-md-10"> 
+                    <select class="form-control" id="paymentType" ng-model="request.paymentType" ng-disabled="permissions !== 'admin'">
+                        <option value="" disabled selected>Select Payment Type</option>
+                        <option>Internal Stock</option>
+                        <option>Visa</option>
+                        <option>Tech One</option>
+                        <option>Proforma Invoice</option>
+                    </select>
+                </div>    
+            </div>      
+                
+            <div class="form-group" ng-show="request.paymentType === 'Tech One'">
+                <div class="col-md-2">
+                    <label class="control-label">PN Number: </label>
+                </div>    
+                <div class="col-md-10"> 
+                    <div class="input group">
+
+                        <input type="number" ng-model="request.pnNumber" class="form-control create-pnnumber" placeholder="PN Number" ng-disabled="permissions !== 'admin'">
+                    </div>
+                </div>    
+            </div> 
+                
+            <div class="form-group" ng-show="request.paymentType === 'Proforma Invoice'">
+                <div class="col-md-2">
+                    <label class="control-label">Invoice Details: </label>
+                </div>    
+                <div class="col-md-10"> 
+                    <div class="input group">
+
+                        <input type="number" ng-model="request.invoiceDetails" class="form-control create-pnnumber" placeholder="Invoice Details" ng-disabled="permissions !== 'admin'">
+                    </div>
+                </div>    
+            </div>
+                
             <div class="form-group">
                 <div class="col-md-2">
                     <label class="control-label">Cost: </label>
@@ -186,7 +243,7 @@
                 <div class="col-md-10"> 
                     <div class="input group">
 
-                        <input type="text" ng-model="request.cost" class="form-control create-cost" placeholder="Cost" ng-disabled="permissions !== 'admin'">
+                        <input type="text" ng-model="request.cost" class="form-control create-cost" placeholder="Cost" ng-disabled="permissions !== 'admin'" ng-required="request.paymentType === 'Internal Stock'">
                     </div>
                 </div>    
             </div>                

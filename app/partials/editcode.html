@@ -1,0 +1,42 @@
+
+    <div class="modal-content">
+      <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true" ng-click="cancel()">×</button>
+            <h2 style="text-align: center;">Edit Analysis Code</h2>
+      </div>
+        <form class="form-horizontal" ng-submit="editCode();">
+    <div class="modal-body">    
+        <div style="margin: 0 auto;">
+
+            
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label">Analysis Code:</label>
+                </div>
+                <div class="col-md-8">
+                    <input type="text"  maxlength="5" ng-model="code.code" class="form-control create-name" placeholder="Analysis Code" required>
+                </div>        
+            </div> 
+
+  
+            
+            </div>
+    </div>                
+            
+            
+        
+
+
+
+
+        <div class="modal-footer">
+            <button class="btn btn-primary" type="submit" ng-click="open = false">Save</button>
+            <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+        </div>
+       
+
+ </form>
+        
+    </div>
+
+    
