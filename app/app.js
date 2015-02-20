@@ -69,13 +69,23 @@ app.config(function ($routeProvider) {
         .when('/admincodes',
             {
                 controller: 'CodeController',
-                templateUrl: 'app/partials/admincodes.html'
+                templateUrl: 'app/partials/adminaccountantcodes.html'
             }) 
         .when('/admincodesview/:codeID',
             {
                 controller: 'CodeViewController',
-                templateUrl: 'app/partials/admincodesview.html'
-            })             
+                templateUrl: 'app/partials/adminaccountantcodesview.html'
+            })  
+        .when('/accountantcodes',
+            {
+                controller: 'CodeController',
+                templateUrl: 'app/partials/adminaccountantcodes.html'
+            }) 
+        .when('/accountantcodesview/:codeID',
+            {
+                controller: 'CodeViewController',
+                templateUrl: 'app/partials/adminaccountantcodesview.html'
+            })            
             
         //default to standard
         .otherwise({ redirectTo: '/standard' });

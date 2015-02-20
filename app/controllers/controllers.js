@@ -8,7 +8,7 @@ app.controller('MainController', function ($scope, requestsService,$location) {
         
         $scope.user = requestsService.getUser()
         $scope.permissions = $scope.user.permissions;
-        
+        $scope.orderByField = "date";
         //check we the correct page is loaded based on the users permissions
         if ($scope.permissions  === 'standard' && $location.path().indexOf("standard") === -1){
             document.location.href='/#/standard/';
@@ -17,6 +17,7 @@ app.controller('MainController', function ($scope, requestsService,$location) {
             document.location.href='/#/manager/';
         }
         else if ($scope.permissions  === 'accountant' && $location.path().indexOf("accountant") === -1){
+            $scope.orderByField = "dateSupplied"
             document.location.href='/#/accountant/';
         }
         else if ($scope.permissions  === 'admin' && $location.path().indexOf("admin") === -1){
@@ -27,11 +28,13 @@ app.controller('MainController', function ($scope, requestsService,$location) {
         
         $scope.currentPage = 1;
         $scope.pageSize = 10;        
-        $scope.orderByField = "date";
+        
         $scope.sortReverse = true;
         
         $scope.requests = requestsService.getRequests();
- 
+        
+
+
       
     }
     
@@ -437,9 +440,9 @@ app.controller('ModalCtrl', function ($scope, $modal, $log) {
 
 app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, items, requestsService, id, supplier, code) {
   $scope.id = id;
-  $scope.suppliers = requestsService.getSuppliers();
-  $scope.permissions = requestsService.getUser().permissions;
-  
+  $scope.user = requestsService.getUser();
+  $scope.permissions = $scope.user.permissions;
+  $scope.tooltips = requestsService.getTooltips();
   setTimeout(function(){$('[data-toggle="tooltip"]').tooltip({'placement': 'top'});}, 500);
   
   
@@ -451,7 +454,8 @@ app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, 
   if (supplier && id > 0){$scope.supplier = requestsService.getSupplier(id);}
   else if (code && id > 0) {$scope.code = requestsService.getAnalysisCode(id);}
   else if (id > 0){$scope.request = requestsService.getRequest(id); $scope.request.dateSupplied = "";}
-  
+    
+
   
 
   $scope.items = items;
@@ -501,7 +505,12 @@ app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, 
     
 
     $scope.deleteRequest = function () {
-        requestsService.deleteRequest(id);
+        $scope.request.status = "Cancelled";
+        if ($scope.permissions === "admin"){
+            $scope.request.adminName = $scope.user.name;
+        }
+        requestsService.updateRequest(id, $scope.request);
+        //requestsService.deleteRequest(id);
     };     
     
   $scope.ok = function () {
@@ -740,6 +749,7 @@ app.controller('SupplierViewController', function ($scope, $routeParams, request
 
 app.controller('CodeController', function ($scope, requestsService,$location) {
     
+
     init();
     
     function init(){
@@ -747,7 +757,8 @@ app.controller('CodeController', function ($scope, requestsService,$location) {
         $scope.pageSize = 10;        
         $scope.orderByField = "id";
         $scope.sortReverse = true;
-        
+        $scope.user = requestsService.getUser();
+        $scope.permissions = $scope.user.permissions;          
         $scope.codes = requestsService.getAnalysisCodes();
         
         

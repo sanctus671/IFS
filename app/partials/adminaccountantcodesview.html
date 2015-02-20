@@ -7,7 +7,7 @@
   <!-- Default panel contents -->
   <div class="panel-heading">
             <h2 style="display:inline;">Details for Analysis Code {{ code.id}}</h2>
-            <div style="display:inline;float:right;">
+            <div style="display:inline;float:right;" ng-if="permissions === 'accountant'">
                 <button class="btn btn-default " ng-controller="ModalCtrl" ng-click="openEditCode('lg',supplier.id)" title="Edit analysis code"><i class="fa fa-pencil-square-o"></i></button> 
                 <button class="btn btn-default" ng-controller="ModalCtrl" ng-click="confirmDeleteCode('sm',supplier.id)" title="Delete analysis code"><i class="fa fa-times"></i></button>
             </div>    
