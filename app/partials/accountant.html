@@ -7,20 +7,18 @@
 
                   <thead>
                       <tr>
-                          <th style="border-bottom:none;width:7.5%"><a href="" ng-click="changeOrder('id')">Request ID <span ng-show="orderByField === 'id'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
-                          <th style="border-bottom:none;width:7.5%"><a href="" ng-click="changeOrder('dateSupplied')">Date Supplied <span ng-show="orderByField === 'dateSupplied'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
-                          <th style="border-bottom:none;width:7.5%"><a href="" ng-click="changeOrder('name')">Name <span ng-show="orderByField === 'name'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
-                          <th style="border-bottom:none;width:7.5%"><a href="" ng-click="changeOrder('type')">Type <span ng-show="orderByField === 'type'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
-                          <th style="border-bottom:none;width:7.5%"><a href="" ng-click="changeOrder('itemDescription')">Item Description <span ng-show="orderByField === 'itemDescription'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
-                          <th style="border-bottom:none;width:7.5%"><a href="" ng-click="changeOrder('size')">Size <span ng-show="orderByField === 'size'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>     
-                          <th style="border-bottom:none;width:7.5%"><a href="" ng-click="changeOrder('quantity')">Quantity <span ng-show="orderByField === 'quantity'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>                           
-                          <th style="border-bottom:none;width:7.5%"><a href="" ng-click="changeOrder('accountNumberPrefix')">Account To Charge <span ng-show="orderByField === 'accountNumberPrefix'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>                    
-                          <th style="border-bottom:none;width:7.5%"><a href="" ng-click="changeOrder('cost')">Cost <span ng-show="orderByField === 'cost'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>                            
+                          <th style="border-bottom:none;width:12%"><a href="" ng-click="changeOrder('id')">Request ID <span ng-show="orderByField === 'id'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
+                          <th style="border-bottom:none;width:12%"><a href="" ng-click="changeOrder('dateSupplied')">Date Supplied <span ng-show="orderByField === 'dateSupplied'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
+                          <th style="border-bottom:none;width:12%"><a href="" ng-click="changeOrder('name')">Name <span ng-show="orderByField === 'name'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
+                          <th style="border-bottom:none;width:12%"><a href="" ng-click="changeOrder('type')">Type <span ng-show="orderByField === 'type'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
+                          <th style="border-bottom:none;width:12%"><a href="" ng-click="changeOrder('size')">Size <span ng-show="orderByField === 'size'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>     
+                          <th style="border-bottom:none;width:12%"><a href="" ng-click="changeOrder('quantity')">Quantity <span ng-show="orderByField === 'quantity'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>                           
+                          <th style="border-bottom:none;width:12%"><a href="" ng-click="changeOrder('accountNumberPrefix')">Account <span ng-show="orderByField === 'accountNumberPrefix'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>                    
+                          <th style="border-bottom:none;width:12%"><a href="" ng-click="changeOrder('cost')">Cost <span ng-show="orderByField === 'cost'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>                            
                           
-                          <th style="border-bottom:none;width:7.5%"><a href="" ng-click="changeOrder('accountNumberPrefix')">LDG <span ng-show="orderByField === 'accountNumberPrefix'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
-                          <th style="border-bottom:none;width:7.5%"><a href="" ng-click="changeOrder('accountNumber')">Account Number<span ng-show="orderByField === 'accountNumber'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
-                          <th style="border-bottom:none;width:7.5%"><a href="" ng-click="changeOrder('itemDescription')">Detailed Description<span ng-show="orderByField === 'itemDescription'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
-                          <th style="border-bottom:none;width:7.5%"><a href="" ng-click="changeOrder('cost')">Amount<span ng-show="orderByField === 'cost'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>                          
+
+                          <th style="border-bottom:none;width:7.5%"><a href="" ng-click="changeOrder('itemDescription')">Description<span ng-show="orderByField === 'itemDescription'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
+ 
                       </tr>
                   </thead>  
                   <tbody>
@@ -29,15 +27,14 @@
                     <td>{{request.dateSupplied | date:'dd/MM/yyyy'}}</td>
                     <td>{{request.name}}</td>
                     <td>{{request.type}}</td>
-                    <td>{{request.itemDescription}}</td>
+
                     <td>{{request.size}}</td>
                     <td>{{request.quantity}}</td>
                     <td>{{request.accountNumberPrefix + request.accountNumber}}</td>
                     <td>{{request.cost}}</td>
-                    <td>{{request.accountNumberPrefix}}</td>
-                    <td>{{request.accountNumber}}</td>
+
                     <td>{{request.itemDescription + " -" + request.name}}</td>
-                    <td>{{request.cost}}</td>
+
                     <td>
                         <div class="other-options" style="float:right;">
                         <button class="btn btn-default " ng-controller="ModalCtrl" ng-click="openEdit('lg',request.id)" title="Edit request"><i class="fa fa-pencil-square-o"></i></button> 
