@@ -1,5 +1,24 @@
-app.service('requestsService', function () {
+app.service('requestsService', function ($http, $q) {
 
+var url = "http://localhost:49245/api/";
+
+var requestsDefer = $q.defer(); //putting the defer out here means we don't constantly reload the requests when switching pages
+
+//globally stored data
+var requests = [];
+var request = [];
+var suppliers = [];
+var supplier = [];
+var analysisCodes = [];
+var analysisCode = [];
+var descriptions = [];
+var codes = [];
+var rooms = [];
+var tooltips = [];
+
+
+
+    
 /* USER FUNCTIONS */         
     this.getUser = function(){
         return user;
@@ -24,27 +43,39 @@ app.service('requestsService', function () {
 /*AUTO COMPLETE / VALIDATION FUNCTIONS */
 
     this.getDescriptions = function(){
-        var descriptions = [];
-        for (var index in requests){
-            var description = requests[index].itemDescription;
-            if ($.inArray(description, descriptions)){
-                descriptions.push(requests[index].itemDescription);
-            }
-        }
-        return descriptions;
+        var descriptionsDefer = $q.defer();
+        $http.get(url + "AutoComplete?type=descriptions").then(function(response){
+            descriptionsDefer.resolve(response.data);
+        });            
+        var  promise = descriptionsDefer.promise;
+        promise.then(function(data){
+            descriptions = data;
+        });            
+        return promise;
     };
     
     this.getAnalysisCodesAutoComplete = function(){
-        var codes = [];
-        for (var index in analysisCodes){
-            var code = analysisCodes[index].code;
-            codes.push(code);
-        }
-        return codes;
+        var analysisCodesDefer = $q.defer();  
+        $http.get(url + "AutoComplete?type=analysiscodes").then(function(response){
+            analysisCodesDefer.resolve(response.data);
+        });            
+        var  promise = analysisCodesDefer.promise;
+        promise.then(function(data){
+            codes = data;
+        });            
+        return promise;
     };     
 
     this.getRooms = function(){
-        return rooms;
+        var roomsDefer = $q.defer();
+        $http.get(url + "AutoComplete?type=rooms").then(function(response){
+            roomsDefer.resolve(response.data);
+        });            
+        var  promise = roomsDefer.promise;
+        promise.then(function(data){
+            rooms = data;
+        });            
+        return promise;
     };
     
      
@@ -62,23 +93,42 @@ app.service('requestsService', function () {
 
 /*ANALYSIS CODE FUNCTIONS */
     this.getAnalysisCodes = function(){
-        
-        return analysisCodes;
+        var analysisCodesDefer = $q.defer();    
+        $http.get(url + "AnalysisCode").then(function(response){
+            analysisCodesDefer.resolve(response.data);
+        });            
+        var  promise = analysisCodesDefer.promise;
+        promise.then(function(data){
+            analysisCodes = data;
+        });            
+        return promise;           
+
     }; 
     
     this.getAnalysisCode = function(id){
-        for (var i = 0; i < analysisCodes.length; i++) {
-            if (analysisCodes[i].id === id) {
-                return analysisCodes[i];
-            }
-        }
-        return null;
+        var AnalysisCodeDefer = $q.defer();
+        $http.get(url + "AnalysisCode/" + id).then(function(response){
+
+            AnalysisCodeDefer.resolve(response.data);
+            
+        });            
+        var  promise = AnalysisCodeDefer.promise;
+        promise.then(function(data){
+
+            analysisCode = data;
+
+
+        });            
+        return promise;
     };
     
     this.insertAnalysisCode = function(data){
         var topID = analysisCodes.length + 1;
         data["id"] = topID;
-        analysisCodes.push(data);
+        
+        $http.post(url + "AnalysisCode", data).then(function(){
+            analysisCodes.push(data);
+        });          
     };     
     this.updateAnalysisCode = function(id,data){
         for (var i = 0; i < analysisCodes.length; i++) {
@@ -86,6 +136,7 @@ app.service('requestsService', function () {
                 for (var x in data){
                     analysisCodes[i][x] = data[x];
                 }
+                $http.put(url + "AnalysisCode/" + id, analysisCodes[i]);                
                 return;
             }
         }
@@ -95,6 +146,7 @@ app.service('requestsService', function () {
         for (var i = analysisCodes.length - 1; i >= 0; i--) {
             if (analysisCodes[i].id === id) {
                 analysisCodes.splice(i, 1);
+                $http.delete(url + "AnalysisCode/" + id);
                 break;
             }
         }
@@ -108,23 +160,43 @@ app.service('requestsService', function () {
 
 /* SUPPLIERS FUNCTIONS */    
     this.getSuppliers = function(){
-        return suppliers;
+        var suppliersDefer = $q.defer();    
+        $http.get(url + "Supplier").then(function(response){
+            suppliersDefer.resolve(response.data);
+        });            
+        var  promise = suppliersDefer.promise;
+        promise.then(function(data){
+            suppliers = data;
+        });            
+        return promise;        
     };
     
      this.getSupplier = function (id) {
-        for (var i = 0; i < suppliers.length; i++) {
-            if (suppliers[i].id === id) {
-                return suppliers[i];
-            }
-        }
-        return null;
+        var supplierDefer = $q.defer();
+        $http.get(url + "Supplier/" + id).then(function(response){
+
+            supplierDefer.resolve(response.data);
+            
+        });            
+        var  promise = supplierDefer.promise;
+        promise.then(function(data){
+
+            supplier = data;
+
+
+        });            
+        return promise;
     };   
     
     
     this.insertSupplier = function(data){
         var topID = suppliers.length + 1;
         data["id"] = topID;
-        suppliers.push(data);
+        $http.post(url + "Supplier", data).then(function(){
+            suppliers.push(data);
+        });         
+
+        
     };     
     this.updateSupplier = function(id,data){
         for (var i = 0; i < suppliers.length; i++) {
@@ -132,6 +204,8 @@ app.service('requestsService', function () {
                 for (var x in data){
                     suppliers[i][x] = data[x];
                 }
+                
+                $http.put(url + "Supplier/" + id, suppliers[i]);
                 return;
             }
         }
@@ -144,19 +218,29 @@ app.service('requestsService', function () {
                 break;
             }
         }
+        $http.delete(url + "Supplier/" + id);
     };     
     
 /* END SUPPLIERS FUNCTIONS */      
     
     
-/* REQUESTS FUNCTIONS */     
-    this.getRequests = function () {
+/* REQUESTS FUNCTIONS */   
+
+    this.getRequests = function (offset, limit) {
+        
         if (user.permissions === "admin" || user.permissions === "accountant"){
             //get all requests
-            return requests;
+            $http.get(url + "Request?offset=" + offset + "&limit=" + limit).then(function(response){
+                requestsDefer.resolve(response.data);
+            });            
+            var  promise = requestsDefer.promise;
+            promise.then(function(data){
+                requests = data;
+            });            
+            return promise;
         }
-
-        else if (user.permissions === "accountant" || user.permissions === "manager"){
+        //TODO    
+        else if (user.permissions === "manager"){
             //get requests under this accountant or manaer
             var users = [];
             for (var i = 0; i < userGroups.length; i++) {
@@ -169,7 +253,7 @@ app.service('requestsService', function () {
             return requests;
         }
         //otherwise just get the requests for this user
-        requests = requests.filter(function(x){return x.userid === user.id;});
+        //requests = requests.filter(function(x){return x.userid === user.id;});
         return requests;
     };
     
@@ -191,7 +275,13 @@ app.service('requestsService', function () {
         data["name"] = user.name;
         data["phone"] = user.phone;
         data["email"] = user.email;
-        requests.push(data);
+        
+        data["accountNumber"] = data["accountNumberPrefix"] + data["accountNumber"]; 
+        
+        $http.post(url + "Request", data).then(function(){
+            requests.push(data);
+        });           
+        
     };
     
     this.updateRequest = function (id,data) {
@@ -215,27 +305,47 @@ app.service('requestsService', function () {
                         requests[i][x] = data[x];
                     }
                 }
+                $http.put(url + "Request/" + id, requests[i]);
+                
                 return;
+
             }
         }
     };
     
     this.deleteRequest = function (id) {
+        //$http.delete()
         for (var i = requests.length - 1; i >= 0; i--) {
             if (requests[i].id === id) {
                 requests.splice(i, 1);
                 break;
             }
         }
+        $http.delete(url + "Request/" + id);
     };
 
     this.getRequest = function (id) {
-        for (var i = 0; i < requests.length; i++) {
-            if (requests[i].id === id) {
-                return requests[i];
+        var requestDefer = $q.defer();
+
+        $http.get(url + "Request/" + id).then(function(response){
+
+            requestDefer.resolve(response.data);
+            
+        });            
+        var  promise = requestDefer.promise;
+        promise.then(function(data){
+
+            request = data;
+ 
+            //console.log(request.accountNumber.match(/(\d+|[^\d]+)/g));
+            
+            if (request.dateSupplied === "0001-01-01T00:00:00"){
+                //actually is empty
+                request.dateSupplied = "";
             }
-        }
-        return null;
+
+        });            
+        return promise;
     };
     
     this.filterRequests = function (field, option, value, date1, date2){
@@ -276,11 +386,21 @@ app.service('requestsService', function () {
 /* TOOLTIP FUNCTIONS */
 
     this.getTooltips = function(){
-        return tooltips;
+        var tooltipsDefer = $q.defer();
+        $http.get(url + "Miscellaneous").then(function(response){
+            tooltipsDefer.resolve(response.data);
+        });            
+        var  promise = tooltipsDefer.promise;
+        promise.then(function(data){
+            tooltips = data;
+        });            
+        return promise;
+    
     };
 
 
 /* END TOOLTIP FUNCTIONS */
+
 
 
 /* DEFINE DUMMY DATA - TO BE REPLACED BY API CALLS TO GET REAL DATA */
@@ -288,7 +408,7 @@ app.service('requestsService', function () {
 
 
     //USER DATA (get from sharepoint)
-    var user = {id: 1, name:"John Doe", phone:"1234567", email:"johndoe@massey.ac.nz", permissions:"accountant", groupid:2};
+    var user = {id: 1, name:"John Doe", phone:"1234567", email:"johndoe@massey.ac.nz", permissions:"admin", groupid:2};
 
 
     //DEFINING USER GROUPS (get from sharepoint)
@@ -305,8 +425,8 @@ app.service('requestsService', function () {
 
 
     //TOOLTIPS (get from db)
-    
-    var tooltips = {type:"Classification of the request",
+  /*  
+    var tooltips = {type:"Classification of the requestt",
         itemDescription:"Description of the item being requested",
         quality:"Level of purity",
         size:"The amount per item",
@@ -319,6 +439,8 @@ app.service('requestsService', function () {
         analysisCode:"5 alpha-numeric characters designated as your analysis code",
         notes:"Extra information for the admin viewing the request",
         }
+    
+    */
 
 
     //SUPPLIERS (get from db)        
@@ -363,11 +485,14 @@ app.service('requestsService', function () {
 
         }];    
 
+        
 
 
+        
 
     //REQUESTS (get from db)    
-    var requests = [
+    
+    /*var requests = [
         {
             id: 1, status: 'Supplied',date: new Date('2014-12-20'), adminName: 'John Doe', userid: 1,name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
             type:'Chemical',itemDescription: 'This is a description of the item',quality:1,size:2, quantity:3,destinationRoom:'SC B 1',notes:'Some Notes', 
@@ -476,6 +601,9 @@ app.service('requestsService', function () {
 
 
     ];
+    */
+   
+   
 
 /* END DUMMY DATA */    
     

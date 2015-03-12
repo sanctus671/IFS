@@ -11,17 +11,17 @@ app.controller('MainController', function ($scope, requestsService,$location) {
         $scope.orderByField = "date";
         //check we the correct page is loaded based on the users permissions
         if ($scope.permissions  === 'standard' && $location.path().indexOf("standard") === -1){
-            document.location.href='/#/standard/';
+            document.location.href='#/standard/';
         }        
         else if ($scope.permissions  === 'manager' && $location.path().indexOf("manager") === -1){
-            document.location.href='/#/manager/';
+            document.location.href='#/manager/';
         }
         else if ($scope.permissions  === 'accountant' && $location.path().indexOf("accountant") === -1){
             $scope.orderByField = "dateSupplied"
-            document.location.href='/#/accountant/';
+            document.location.href='#/accountant/';
         }
         else if ($scope.permissions  === 'admin' && $location.path().indexOf("admin") === -1){
-            document.location.href='/#/admin/';
+            document.location.href='#/admin/';
         }
 
         
@@ -31,8 +31,13 @@ app.controller('MainController', function ($scope, requestsService,$location) {
         
         $scope.sortReverse = true;
         
-        $scope.requests = requestsService.getRequests();
+        var promise = requestsService.getRequests(0, 1000);
+        promise.then(function(data){
+            $scope.requests = data;
+        });
+
         
+
 
 
       
@@ -89,16 +94,16 @@ app.controller('MainViewController', function ($scope, $routeParams, requestsSer
     //check we the correct page is loaded based on the users permissions
 
     if ($scope.permissions  === 'standard' && $location.path().indexOf("standard") === -1){
-        document.location.href='/#/standardview/' + $routeParams.reqID;
+        document.location.href='#/standardview/' + $routeParams.reqID;
     }        
     else if ($scope.permissions  === 'manager' && $location.path().indexOf("manager") === -1){
-        document.location.href='/#/managerview/' + $routeParams.reqID;
+        document.location.href='#/managerview/' + $routeParams.reqID;
     }
     else if ($scope.permissions  === 'accountant' && $location.path().indexOf("accountant") === -1){
-        document.location.href='/#/accountantview/' + $routeParams.reqID;
+        document.location.href='#/accountantview/' + $routeParams.reqID;
     }
     else if ($scope.permissions  === 'admin' && $location.path().indexOf("admin") === -1){
-        document.location.href='/#/adminview/' + $routeParams.reqID;
+        document.location.href='#/adminview/' + $routeParams.reqID;
     }    
     
     
@@ -115,7 +120,11 @@ app.controller('MainViewController', function ($scope, $routeParams, requestsSer
         var requestID = ($routeParams.reqID) ? parseInt($routeParams.reqID) : 0;
         if (requestID > 0) {
 
-            $scope.request = requestsService.getRequest(requestID);
+ 
+            var promise = requestsService.getRequest(requestID);
+                promise.then(function(data){
+                $scope.request = data; 
+            });  
         }
     
         
@@ -443,17 +452,49 @@ app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, 
   $scope.user = requestsService.getUser();
   $scope.permissions = $scope.user.permissions;
   $scope.tooltips = requestsService.getTooltips();
+  
+  var promise = requestsService.getSuppliers();
+  promise.then(function(data){
+    $scope.suppliers = data;
+   });
+  
+  var promise = requestsService.getTooltips();
+      promise.then(function(data){
+      $scope.tooltips = data; 
+    });
+    
   setTimeout(function(){$('[data-toggle="tooltip"]').tooltip({'placement': 'top'});}, 500);
   
   
   if ($scope.permissions !== "admin"){
       setTimeout(function(){$('.admin').css({"background-color" : "#f5f5f5"});}, 500);
       
-  }
+  }  
   
-  if (supplier && id > 0){$scope.supplier = requestsService.getSupplier(id);}
-  else if (code && id > 0) {$scope.code = requestsService.getAnalysisCode(id);}
-  else if (id > 0){$scope.request = requestsService.getRequest(id); $scope.request.dateSupplied = "";}
+  if (supplier && id > 0){
+      var promise = requestsService.getSupplier(id);
+      promise.then(function(data){
+        $scope.supplier = data;
+
+        });      
+    }
+  else if (code && id > 0) {
+      
+      var promise = requestsService.getAnalysisCode(id);
+      promise.then(function(data){
+      $scope.code = data; 
+        });
+    }
+
+  else if (id > 0){
+
+      var promise = requestsService.getRequest(id);
+      promise.then(function(data){
+        $scope.request = data;
+        $scope.request.dateSupplied = "";
+        });     
+     
+  }
     
 
   
@@ -540,23 +581,27 @@ app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, 
             onlySelectValid: true,
             outHeight: 50,
             source: function (request, response) {
-                    var data = requestsService.getDescriptions();
-                    
-                    data = $scope.descriptionOptions.methods.filter(data, request.term);
 
-                    if (!data.length) {
-                        data.push({
-                            label: 'Not Found',
+                    var promise = requestsService.getDescriptions();
+                    promise.then(function(descriptions){
+                        var data = descriptions;                    
+                        data = $scope.descriptionOptions.methods.filter(data, request.term);
+
+                        if (!data.length) {
+                            data.push({
+                                label: 'Not Found',
+                                value: null
+                            });
+                        }
+                        // add "Add Language" button to autocomplete menu bottom
+                        /*data.push({
+                            label: $compile('<a class="ui-menu-add" ng-click="add()">Add Language</a>')($scope),
                             value: null
-                        });
-                    }
-                    // add "Add Language" button to autocomplete menu bottom
-                    /*data.push({
-                        label: $compile('<a class="ui-menu-add" ng-click="add()">Add Language</a>')($scope),
-                        value: null
-                    });*/
-                    response(data);
+                        });*/
+                        response(data);
+                    });
                 }
+            
             },
             events: {
                 change: function (event, ui) {
@@ -577,22 +622,26 @@ app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, 
             outHeight: 50,
             source: function (request, response) {
                 
-                    var data = requestsService.getRooms();
-                    
-                    data = $scope.destinationRoomOptions.methods.filter(data, request.term);
 
-                    if (!data.length) {
-                        data.push({
-                            label: 'Not Found',
+                    var promise = requestsService.getRooms();
+                    promise.then(function(rooms){
+                        var data = rooms;
+                    
+                        data = $scope.destinationRoomOptions.methods.filter(data, request.term);
+
+                        if (!data.length) {
+                            data.push({
+                                label: 'Not Found',
+                                value: null
+                            });
+                        }
+                        // add "Add Language" button to autocomplete menu bottom
+                        /*data.push({
+                            label: $compile('<a class="ui-menu-add" ng-click="add()">Add Language</a>')($scope),
                             value: null
-                        });
-                    }
-                    // add "Add Language" button to autocomplete menu bottom
-                    /*data.push({
-                        label: $compile('<a class="ui-menu-add" ng-click="add()">Add Language</a>')($scope),
-                        value: null
-                    });*/
-                    response(data);
+                        });*/
+                        response(data);
+                    });
                 }
             },
             events: {
@@ -613,23 +662,25 @@ app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, 
             onlySelectValid: true,
             outHeight: 50,
             source: function (request, response) {
-                
-                    var data = requestsService.getAnalysisCodesAutoComplete();
-                    
-                    data = $scope.analysisCodeOptions.methods.filter(data, request.term);
+                    var promise = requestsService.getAnalysisCodesAutoComplete();
+                    promise.then(function(codes){
+                        var data = codes;               
 
-                    if (!data.length) {
-                        data.push({
-                            label: 'Not Found',
+                        data = $scope.analysisCodeOptions.methods.filter(data, request.term);
+
+                        if (!data.length) {
+                            data.push({
+                                label: 'Not Found',
+                                value: null
+                            });
+                        }
+                        // add "Add Language" button to autocomplete menu bottom
+                        /*data.push({
+                            label: $compile('<a class="ui-menu-add" ng-click="add()">Add Language</a>')($scope),
                             value: null
-                        });
-                    }
-                    // add "Add Language" button to autocomplete menu bottom
-                    /*data.push({
-                        label: $compile('<a class="ui-menu-add" ng-click="add()">Add Language</a>')($scope),
-                        value: null
-                    });*/
-                    response(data);
+                        });*/
+                        response(data);
+                });
                 }
             },
             events: {
@@ -691,7 +742,11 @@ app.controller('SupplierController', function ($scope, requestsService,$location
         $scope.orderByField = "id";
         $scope.sortReverse = true;
         
-        $scope.suppliers = requestsService.getSuppliers();
+ 
+        var promise = requestsService.getSuppliers();
+        promise.then(function(data){
+            $scope.suppliers = data;
+        });
         
         
 
@@ -736,7 +791,11 @@ app.controller('SupplierViewController', function ($scope, $routeParams, request
         var supplierID = ($routeParams.supID) ? parseInt($routeParams.supID) : 0;
         if (supplierID > 0) {
 
-            $scope.supplier = requestsService.getSupplier(supplierID);
+
+            var promise = requestsService.getSupplier(supplierID);
+            promise.then(function(data){
+                $scope.supplier = data; 
+            });            
         }
     
         
@@ -759,7 +818,11 @@ app.controller('CodeController', function ($scope, requestsService,$location) {
         $scope.sortReverse = true;
         $scope.user = requestsService.getUser();
         $scope.permissions = $scope.user.permissions;          
-        $scope.codes = requestsService.getAnalysisCodes();
+
+        var promise = requestsService.getAnalysisCodes();
+            promise.then(function(data){
+            $scope.codes = data;
+        });
         
         
 
@@ -798,7 +861,11 @@ app.controller('CodeViewController', function ($scope, $routeParams, requestsSer
         var codeID = ($routeParams.codeID) ? parseInt($routeParams.codeID) : 0;
         if (codeID > 0) {
 
-            $scope.code = requestsService.getAnalysisCode(codeID);
+            
+            var promise = requestsService.getAnalysisCode(codeID);
+            promise.then(function(data){
+                $scope.code = data; 
+            });
         }
     
         

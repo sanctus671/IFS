@@ -142,3 +142,12 @@ width: 150px;
     background-color:rgba(228, 160, 37, 0.1);
     border-radius:5px;
 }
+
+.loader{
+    background-image:url("images/ajax-loader.gif");
+    background-repeat: no-repeat;
+    background-position: center; 
+    margin: 0 auto;
+    height:50px;
+    width:50px;
+}

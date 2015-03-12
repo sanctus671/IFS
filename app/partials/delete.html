@@ -11,7 +11,7 @@
 
 </div>
         <div class="modal-footer">
-            <button class="btn btn-primary" type="button" onclick="window.location.assign('#/{{permissions}}')" ng-click="deleteRequest(); ok()">Delete</button>
+            <button class="btn btn-primary" type="button" ng-click="window.location.assign('#/{{permissions}}'); deleteRequest(); ok()">Delete</button>
             <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
         </div>
     </div>

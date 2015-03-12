@@ -1,39 +1,58 @@
-﻿using System;
+﻿using api.Models;
+using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
+using System.Web.Http.Cors;
 
 namespace api.Controllers
 {
+    [EnableCors(origins: "http://localhost:8080", headers: "*", methods: "*")]
     public class MiscellaneousController : ApiController
     {
         // GET: api/Miscellaneous
-        public IEnumerable<string> Get()
+        public IEnumerable<KeyValuePair<string, string>> Get()
         {
-            return new string[] { "value1", "value2" };
+
+            string source = @"Data Source=TAYLOR-HP;Initial Catalog=ifs_new;Integrated Security=True;MultipleActiveResultSets=true";
+            SqlConnection con = new SqlConnection(source);
+            con.Open();
+
+            SqlCommand tooltips = new SqlCommand("SELECT * FROM tooltips", con);
+            tooltips.CommandTimeout = 0;
+            SqlDataReader tooltipsReader = tooltips.ExecuteReader();
+
+            Dictionary<string,string> dictionary = new Dictionary<string,string>();
+
+            while (tooltipsReader.Read())
+            {
+                string field = (string)tooltipsReader["field"];
+                string data = (string)tooltipsReader["tooltip"];
+                dictionary.Add(field, data);
+
+
+            }
+
+            return dictionary;
         }
 
-        // GET: api/Miscellaneous/5
-        public string Get(int id)
+        // GET: api/Miscellaneous/GL11223213
+        public bool Get(string account)
         {
-            return "value";
+            //checks account number is valid
+            string source = @"Data Source=TAYLOR-HP;Initial Catalog=ifs_new;Integrated Security=True;MultipleActiveResultSets=true";
+            SqlConnection con = new SqlConnection(source);
+            con.Open();
+
+            SqlCommand check = new SqlCommand("SELECT count(1) FROM accounts WHERE number = '" + account + "'", con);
+
+            return (bool)check.ExecuteScalar();
+
         }
 
-        // POST: api/Miscellaneous
-        public void Post([FromBody]string value)
-        {
-        }
 
-        // PUT: api/Miscellaneous/5
-        public void Put(int id, [FromBody]string value)
-        {
-        }
-
-        // DELETE: api/Miscellaneous/5
-        public void Delete(int id)
-        {
-        }
     }
 }

@@ -7,8 +7,8 @@ namespace api.Models
 {
     public class AnalysisCode
     {
-        public int Id { get; set; }
-        public string Code { get; set; }
+        public int id { get; set; }
+        public string code { get; set; }
 
     }
 }
