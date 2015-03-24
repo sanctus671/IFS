@@ -19,12 +19,12 @@
                   </thead>  
                   <tbody>
                            
-                <tr ng-class="{adminrequest: !request.adminName}" dir-paginate="request in requests | orderBy:orderByField:sortReverse | itemsPerPage: pageSize | filter:q" current-page="currentPage" ng-if="request.filtered !== 1">
+                <tr ng-class="{adminrequest: !request.adminName}" dir-paginate="request in requests | orderBy:orderByField:sortReverse | itemsPerPage: pageSize | filter:q" current-page="currentPage" ng-if="request.filtered !== 1" total-items="totalRequests">
                     <td><a href="#/adminview/{{request.id}}" class="btn-link" title="View all details for this request">{{request.id}}</a></td>
                     <td>{{request.date | date:'dd/MM/yyyy'}}</td>
                     <td>{{request.name}}</td>
                     <td>{{request.supplier}}</td>
-                    <td>{{request.accountNumberPrefix + request.accountNumber}}</td>
+                    <td>{{request.accountNumber}}</td>
                     <td>{{request.status}}</td>
                     <td>{{request.adminName}}</td>
                     <td>
@@ -46,7 +46,7 @@
             </div>
           </div>        
         
-        <dir-pagination-controls boundary-links="true" on-page-change="pageChangeHandler(newPageNumber)" template-url="app/directives/pagination/dirPagination.tpl.html"></dir-pagination-controls>
+        <dir-pagination-controls boundary-links="true" on-page-change="pageChanged(newPageNumber)" template-url="app/directives/pagination/dirPagination.tpl.html"></dir-pagination-controls>
         <div class="pagination-options" style="display:inline; float:right; margin-top:25px;">
 
             <label for="search">items per page:</label>

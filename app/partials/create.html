@@ -11,7 +11,7 @@
             
             
             <div class="panel panel-default">
-                <div class="panel-heading"><h3>Request Selection <a href="" onclick="$('.chem-select').slideToggle()" style="float:right;"><i class="fa fa-caret-down"></i></a></h3></div>
+                <div class="panel-heading"><h3>Request Selection <span ng-show="submitted === true && (!request.itemDescription || !request.type)" class="incomplete-fields"><i class="fa fa-exclamation-circle"></i> Required fields not filled out</span><a href="" onclick="$('.chem-select').slideToggle()" style="float:right;"><i class="fa fa-caret-down"></i></a></h3></div>
             <div class="panel-body chem-select">  
                 
                 
@@ -68,7 +68,7 @@
             
             
             <div class="panel panel-default">
-            <div class="panel-heading"><h3>{{request.type}} Request Details <a href="" onclick="$('.req-details').slideToggle()" style="float:right;"><i class="fa fa-caret-down"></i></a></h3></div>
+            <div class="panel-heading"><h3>{{request.type}} Request Details <span ng-show="submitted === true && ((request.permit && !request.permitNumber) || !request.destinationRoom || !request.cas || !request.accountNumberPrefix || !request.accountNumber)" class="incomplete-fields"><i class="fa fa-exclamation-circle"></i> Required fields not filled out</span> <a href="" onclick="$('.req-details').slideToggle()" style="float:right;"><i class="fa fa-caret-down"></i></a></h3></div>
             <div class="panel-body req-details" style="display:none;">   
                 
             <div class="form-group">
@@ -133,7 +133,7 @@
                             <option>NP</option>
                         </select>
                     </span>
-                    <input type="number"  ng-model="request.accountNumber" maxlength="9" class="form-control create-acc" placeholder="Account Number" required>
+                    <input type="text"  ng-model="request.accountNumber" maxlength="9" class="form-control create-acc" placeholder="Account Number" required>
                 </div>    
             </div>
                 
@@ -159,7 +159,7 @@
             </div>                  
                 
             <div class="panel panel-default">
-            <div class="panel-heading"><h3>Admin Only <a href="" onclick="$('.admin').slideToggle()" style="float:right;"><i class="fa fa-caret-down"></i></a></h3></div>
+            <div class="panel-heading"><h3>Admin Only <span ng-show="submitted === true && permissions === 'admin' && ((request.paymentType === 'Tech One' && !request.pnNumber) || (request.paymentType === 'Proforma Invoice' && !request.invoiceDetails) || (request.paymentType === 'Proforma Invoice' && !request.invoiceDetails) || (request.paymentType === 'Internal Stock' && !request.cost) || (request.status === 'Cancelled' && !request.adminNotes))" class="incomplete-fields"><i class="fa fa-exclamation-circle"></i> Required fields not filled out</span> <a href="" onclick="$('.admin').slideToggle()" style="float:right;"><i class="fa fa-caret-down"></i></a></h3></div>
             <div class="panel-body admin" style="display:none;">  
                 
              <div class="form-group">
@@ -284,8 +284,8 @@
     </div>
 
         <div class="modal-footer">
-            <button class="btn btn-primary" type="submit"  ng-click="open = true">Add And New Request</button> 
-            <button class="btn btn-primary" type="submit" ng-click="open = false">Add Request</button>
+            <button class="btn btn-primary" type="submit"  ng-click="open = true; submitted=true;">Add And New Request</button> 
+            <button class="btn btn-primary" type="submit" ng-click="open = false;submitted=true;">Add Request</button>
             <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
         </div>
        

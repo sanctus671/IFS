@@ -21,7 +21,7 @@ namespace api.Controllers
             SqlConnection con = new SqlConnection(source);
             con.Open();
 
-            SqlCommand suppliers = new SqlCommand("SELECT * FROM suppliers", con);
+            SqlCommand suppliers = new SqlCommand("SELECT * FROM suppliers ORDER BY id", con);
             suppliers.CommandTimeout = 0;
             SqlDataReader suppliersReader = suppliers.ExecuteReader();
 

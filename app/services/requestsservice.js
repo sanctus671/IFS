@@ -2,10 +2,11 @@ app.service('requestsService', function ($http, $q) {
 
 var url = "http://localhost:49245/api/";
 
-var requestsDefer = $q.defer(); //putting the defer out here means we don't constantly reload the requests when switching pages
+ //putting the defer out here means we don't constantly reload the requests when switching pages
 
 //globally stored data
 var requests = [];
+var requestsLength = 0;
 var request = [];
 var suppliers = [];
 var supplier = [];
@@ -127,8 +128,11 @@ var tooltips = [];
         data["id"] = topID;
         
         $http.post(url + "AnalysisCode", data).then(function(){
-            analysisCodes.push(data);
-        });          
+            
+        });    
+        analysisCodes.push(data);
+        return analysisCodes;
+        
     };     
     this.updateAnalysisCode = function(id,data){
         for (var i = 0; i < analysisCodes.length; i++) {
@@ -136,20 +140,23 @@ var tooltips = [];
                 for (var x in data){
                     analysisCodes[i][x] = data[x];
                 }
-                $http.put(url + "AnalysisCode/" + id, analysisCodes[i]);                
-                return;
+
             }
         }
+        $http.put(url + "AnalysisCode/" + id, analysisCodes[i]);                
+        return analysisCodes;        
     }; 
     
     this.deleteAnalysisCode = function(id){
         for (var i = analysisCodes.length - 1; i >= 0; i--) {
             if (analysisCodes[i].id === id) {
                 analysisCodes.splice(i, 1);
-                $http.delete(url + "AnalysisCode/" + id);
+                
                 break;
             }
         }
+        $http.delete(url + "AnalysisCode/" + id);
+        return analysisCodes;
     };     
     
     
@@ -190,11 +197,14 @@ var tooltips = [];
     
     
     this.insertSupplier = function(data){
-        var topID = suppliers.length + 1;
+        var topID = suppliers[suppliers.length - 1].id + 1;
+        
         data["id"] = topID;
         $http.post(url + "Supplier", data).then(function(){
-            suppliers.push(data);
-        });         
+
+        });  
+        suppliers.push(data);
+        return suppliers;
 
         
     };     
@@ -206,7 +216,7 @@ var tooltips = [];
                 }
                 
                 $http.put(url + "Supplier/" + id, suppliers[i]);
-                return;
+                return suppliers;
             }
         }
     }; 
@@ -219,6 +229,7 @@ var tooltips = [];
             }
         }
         $http.delete(url + "Supplier/" + id);
+        return suppliers;
     };     
     
 /* END SUPPLIERS FUNCTIONS */      
@@ -227,7 +238,7 @@ var tooltips = [];
 /* REQUESTS FUNCTIONS */   
 
     this.getRequests = function (offset, limit) {
-        
+        var requestsDefer = $q.defer();
         if (user.permissions === "admin" || user.permissions === "accountant"){
             //get all requests
             $http.get(url + "Request?offset=" + offset + "&limit=" + limit).then(function(response){
@@ -235,7 +246,8 @@ var tooltips = [];
             });            
             var  promise = requestsDefer.promise;
             promise.then(function(data){
-                requests = data;
+                requestsLength = data.count;
+                requests = data.items;
             });            
             return promise;
         }
@@ -260,7 +272,8 @@ var tooltips = [];
     
 
     this.insertRequest = function (data) {
-        var topID = requests.length + 1;
+        requestsLength += 1;
+        var topID = requestsLength;
         data["id"] = topID;
         data["status"] = "Requested";
         
@@ -276,41 +289,30 @@ var tooltips = [];
         data["phone"] = user.phone;
         data["email"] = user.email;
         
-        data["accountNumber"] = data["accountNumberPrefix"] + data["accountNumber"]; 
+
         
         $http.post(url + "Request", data).then(function(){
-            requests.push(data);
-        });           
+            
+        });  
+        requests.push(data);
+        return requests;
         
     };
     
     this.updateRequest = function (id,data) {
-        //need to detect it is the first time it is changed to this status
-        
-        if (user.permissions === "admin" && data["status"] === "Received"){
-            data["adminName"] = user.name;
-        }
         for (var i = 0; i < requests.length; i++) {
             if (requests[i].id === id) {
-
-
                 for (var x in data){
-                    if (x === 'dateSupplied' && data['status'] === 'Supplied' && user.permissions === "admin"){
-                        var today = new Date();var dd = today.getDate();var mm = today.getMonth()+1;var yyyy = today.getFullYear();
-                        if(dd<10) {dd='0'+dd;} if(mm<10) {mm='0'+mm;} today = dd+'/'+mm+'/'+yyyy;                             
-                        //data[x] = today;
-                        requests[i][x] = today;
-                    }
-                    else{
-                        requests[i][x] = data[x];
-                    }
+                    requests[i][x] = data[x];
                 }
-                $http.put(url + "Request/" + id, requests[i]);
                 
-                return;
 
             }
         }
+        console.log(data);
+        $http.put(url + "Request/" + id, data);
+        return requests;        
+
     };
     
     this.deleteRequest = function (id) {
@@ -322,6 +324,7 @@ var tooltips = [];
             }
         }
         $http.delete(url + "Request/" + id);
+        return requests
     };
 
     this.getRequest = function (id) {
@@ -441,7 +444,7 @@ var tooltips = [];
         }
     
     */
-
+/*
 
     //SUPPLIERS (get from db)        
     var suppliers = [
@@ -492,7 +495,7 @@ var tooltips = [];
 
     //REQUESTS (get from db)    
     
-    /*var requests = [
+    var requests = [
         {
             id: 1, status: 'Supplied',date: new Date('2014-12-20'), adminName: 'John Doe', userid: 1,name:'John Doe', phone:'1234567', email:'johndoe@massey.ac.nz', 
             type:'Chemical',itemDescription: 'This is a description of the item',quality:1,size:2, quantity:3,destinationRoom:'SC B 1',notes:'Some Notes', 

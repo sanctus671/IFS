@@ -1,5 +1,5 @@
 
-app.controller('MainController', function ($scope, requestsService,$location) {
+app.controller('MainController', function ($scope, $rootScope, requestsService,$location) {
 
     
     init();
@@ -27,14 +27,16 @@ app.controller('MainController', function ($scope, requestsService,$location) {
         
         
         $scope.currentPage = 1;
-        $scope.pageSize = 10;        
+        $scope.pageSize = 10;  
+        $scope.totalRequests = 0;
+        getPaginatedRequests();
+        $scope.pagination = {
+            current: 1
+        };        
         
         $scope.sortReverse = true;
         
-        var promise = requestsService.getRequests(0, 1000);
-        promise.then(function(data){
-            $scope.requests = data;
-        });
+        
 
         
 
@@ -50,12 +52,28 @@ app.controller('MainController', function ($scope, requestsService,$location) {
 
     };
     
+    $scope.pageChanged = function(newPage) {
+        $scope.currentPage = newPage;
+        getPaginatedRequests();
+    };
+    
     $scope.changePageSize = function (size) {
         
         $scope.pageSize = size; 
-
+        //getRequests();
 
     };
+    
+    function getPaginatedRequests() {     
+        var promise = requestsService.getRequests($scope.pageSize * ($scope.currentPage -1), $scope.pageSize);
+        setTimeout(function(){        
+        promise.then(function(data){
+            $scope.requests = data.items;
+            $scope.totalRequests = data.count;
+        }); 
+        },250);           
+    }
+    
     
     $scope.change = function (){
         requestsService.changePermissions('admin');
@@ -83,11 +101,15 @@ app.controller('MainController', function ($scope, requestsService,$location) {
             requestsService.filterRequests(field, options2, value, date1, date2);
         }
   };
+  
+  $rootScope.$on('requestsChanged', function (event, data){
+      $scope.requests = data;
+  });
              
 });
 
 
-app.controller('MainViewController', function ($scope, $routeParams, requestsService,$location) {
+app.controller('MainViewController', function ($scope, $rootScope, $routeParams, requestsService,$location) {
     
     $scope.permissions = requestsService.getUser().permissions;
 
@@ -117,11 +139,11 @@ app.controller('MainViewController', function ($scope, $routeParams, requestsSer
 
     function init() {
     
-        var requestID = ($routeParams.reqID) ? parseInt($routeParams.reqID) : 0;
-        if (requestID > 0) {
+        $scope.requestID = ($routeParams.reqID) ? parseInt($routeParams.reqID) : 0;
+        if ($scope.requestID > 0) {
 
  
-            var promise = requestsService.getRequest(requestID);
+            var promise = requestsService.getRequest($scope.requestID);
                 promise.then(function(data){
                 $scope.request = data; 
             });  
@@ -130,6 +152,15 @@ app.controller('MainViewController', function ($scope, $routeParams, requestsSer
         
         
     }
+    
+    $rootScope.$on('requestsChanged', function (event, data){
+        console.log("here");
+        for (var i = 0; i < data.length; i++) {
+            if (data[i].id === $scope.requestID) {
+                $scope.request = data[i];
+            }
+        }       
+  });
   
 
 });
@@ -447,12 +478,16 @@ app.controller('ModalCtrl', function ($scope, $modal, $log) {
 
 
 
-app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, items, requestsService, id, supplier, code) {
+app.controller('ModalInstanceCtrl', function ($scope, $rootScope, $modalInstance, $compile, items, requestsService, id, supplier, code) {
   $scope.id = id;
   $scope.user = requestsService.getUser();
   $scope.permissions = $scope.user.permissions;
-  $scope.tooltips = requestsService.getTooltips();
-  
+
+  var promise = requestsService.getTooltips();
+  promise.then(function(data){
+    $scope.tooltips = data;
+   });
+   
   var promise = requestsService.getSuppliers();
   promise.then(function(data){
     $scope.suppliers = data;
@@ -491,6 +526,11 @@ app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, 
       var promise = requestsService.getRequest(id);
       promise.then(function(data){
         $scope.request = data;
+        var parts = $scope.request.accountNumber.match(/(\d+|[^\d]+)/g);
+        if (parts.length > 1){
+            $scope.request.accountNumberPrefix = parts.shift();
+            $scope.request.accountNumber = parts.join("");
+        }
         $scope.request.dateSupplied = "";
         });     
      
@@ -520,15 +560,17 @@ app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, 
             quantity:$scope.request['quantity'],
             size:$scope.request['size'],
             status:$scope.request['status'],
-            accountNumber:$scope.request['accountNumber'],
-            accountNumberPrefix:$scope.request['accountNumberPrefix'],
+            accountNumber:$scope.request['accountNumberPrefix'] + $scope.request['accountNumber'],
             permit:$scope.request['permit'],
-            permitNumber:$scope.request['permitNumber']};
+            permitNumber:$scope.request['permitNumber'],
+            analysisCode:$scope.request['analysisCode'],
+            };
 
 
 
         if (requestsService.checkAccount($scope.request['accountNumber'])){
-            requestsService.insertRequest(toBeInserted);
+            var requests = requestsService.insertRequest(toBeInserted);
+            $rootScope.$broadcast('requestsChanged', requests);
             $scope.request = {};            
             $scope.ok();
         }
@@ -540,8 +582,20 @@ app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, 
     };
     
     $scope.updateRequest = function(){
-        requestsService.updateRequest(id, $scope.request);
-         $scope.ok();
+        $scope.request["accountNumber"] = $scope.request["accountNumberPrefix"] + $scope.request["accountNumber"]; 
+        
+        if ($scope.permissions === "admin"){
+            $scope.request["adminName"] = $scope.user.name;
+            if ($scope.request['status'] === "Supplied"){
+                var today = new Date();var dd = today.getDate();var mm = today.getMonth()+1;var yyyy = today.getFullYear();
+                if(dd<10) {dd='0'+dd;} if(mm<10) {mm='0'+mm;} today = dd+'/'+mm+'/'+yyyy;  
+                
+                $scope.request["dateSupplied"] = today;
+            }
+        }       
+        var requests = requestsService.updateRequest(id, $scope.request);
+        $rootScope.$broadcast('requestsChanged', requests);
+        $scope.ok();
     };   
     
 
@@ -550,7 +604,8 @@ app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, 
         if ($scope.permissions === "admin"){
             $scope.request.adminName = $scope.user.name;
         }
-        requestsService.updateRequest(id, $scope.request);
+        var requests = requestsService.updateRequest(id, $scope.request);
+        $rootScope.$broadcast('requestsChanged', requests);
         //requestsService.deleteRequest(id);
     };     
     
@@ -695,36 +750,42 @@ app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, 
         
         
         $scope.insertSupplier = function(){
-            requestsService.insertSupplier($scope.supplier);
+            $scope.suppliers = requestsService.insertSupplier($scope.supplier);
+            $rootScope.$broadcast('suppliersChanged', $scope.suppliers);
             $scope.supplier = {};            
             $scope.ok();            
         };
         
         $scope.editSupplier = function(){
-            requestsService.updateSupplier(id,$scope.supplier);
+            $scope.suppliers = requestsService.updateSupplier(id,$scope.supplier);
+            $rootScope.$broadcast('suppliersChanged', $scope.suppliers);            
             $scope.supplier = {};            
             $scope.ok();              
         };
         $scope.deleteSupplier = function(){
-            requestsService.deleteSupplier(id);          
+            $scope.suppliers = requestsService.deleteSupplier(id); 
+            $rootScope.$broadcast('suppliersChanged', $scope.suppliers);
             $scope.ok();            
         }; 
         
         
         
         $scope.insertCode = function(){
-            requestsService.insertAnalysisCode($scope.code);
+            var codes = requestsService.insertAnalysisCode($scope.code);
+            $rootScope.$broadcast('codesChanged', codes);
             $scope.code = {};            
             $scope.ok();            
         };
         
         $scope.editCode = function(){
-            requestsService.updateAnalysisCode(id,$scope.code);
+            var codes = requestsService.updateAnalysisCode(id,$scope.code);
+            $rootScope.$broadcast('codesChanged', codes);
             $scope.code = {};            
             $scope.ok();              
         };
         $scope.deleteCode = function(){
-            requestsService.deleteAnalysisCode(id);          
+            var codes = requestsService.deleteAnalysisCode(id);    
+            $rootScope.$broadcast('codesChanged', codes);
             $scope.ok();            
         };         
 });
@@ -733,7 +794,7 @@ app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, $compile, 
 
 
 app.controller('SupplierController', function ($scope, requestsService,$location) {
-    
+ 
     init();
     
     function init(){
@@ -741,15 +802,18 @@ app.controller('SupplierController', function ($scope, requestsService,$location
         $scope.pageSize = 10;        
         $scope.orderByField = "id";
         $scope.sortReverse = true;
-        
- 
+        $scope.suppliers = [];
+        setTimeout(function(){
         var promise = requestsService.getSuppliers();
         promise.then(function(data){
             $scope.suppliers = data;
         });
-        
-        
+        },250);
 
+        
+     $scope.$on('suppliersChanged', function(event, args) {
+        $scope.suppliers = args;
+    });  
       
     }
     
@@ -766,7 +830,9 @@ app.controller('SupplierController', function ($scope, requestsService,$location
         $scope.pageSize = size; 
 
 
-    };    
+    }; 
+    
+
     
 
 });
@@ -817,14 +883,18 @@ app.controller('CodeController', function ($scope, requestsService,$location) {
         $scope.orderByField = "id";
         $scope.sortReverse = true;
         $scope.user = requestsService.getUser();
-        $scope.permissions = $scope.user.permissions;          
-
+        $scope.permissions = $scope.user.permissions;     
+        
+        setTimeout(function(){
         var promise = requestsService.getAnalysisCodes();
             promise.then(function(data){
             $scope.codes = data;
         });
+        },250);        
         
-        
+     $scope.$on('codesChanged', function(event, args) {
+        $scope.codes = args;
+    });         
 
       
     }

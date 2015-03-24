@@ -14,13 +14,23 @@ namespace api.Controllers
     public class RequestController : ApiController
     {
         // GET: api/Request
-        public IEnumerable<Request> Get(int offset = 0, int limit = 1000, List<string> usergroup = null)
+        public RequestPaginate Get(int offset = 0, int limit = 1000)
         {
+            RequestPaginate returnItem = new RequestPaginate();
+
 
             string source = @"Data Source=TAYLOR-HP;Initial Catalog=ifs_new;Integrated Security=True;MultipleActiveResultSets=true";
             SqlConnection con = new SqlConnection(source);
             con.Open();
 
+            //get total number of requests
+            SqlCommand requestsTotal = new SqlCommand(@"SELECT COUNT(*) FROM requests;", con);
+
+            returnItem.count = (int)requestsTotal.ExecuteScalar();
+
+            List<string> usergroup = null;
+
+            //MU.IFS.Webapi
             SqlCommand requests = new SqlCommand(@"SELECT * FROM requests 
                                                     INNER JOIN rooms ON requests.roomid = rooms.id 
                                                     INNER JOIN accounts ON requests.accountid = accounts.id 
@@ -62,6 +72,21 @@ namespace api.Controllers
                 //could be null
                 data.analysisCode = (requestsReader["code"] ?? "").ToString();
 
+                //find the admin (could be none)
+
+                SqlCommand adminName = new SqlCommand(@"SELECT * FROM requests 
+                                                    INNER JOIN sharepoint_users ON requests.adminid = sharepoint_users.id
+                                                    WHERE requests.id = " + data.id, con);
+                adminName.CommandTimeout = 0;
+                SqlDataReader adminNameReader = adminName.ExecuteReader();
+
+                while (adminNameReader.Read())
+                {
+
+                    data.adminName = (string)adminNameReader["name"];
+     
+
+                }
 
                 
                 //find the status' (could be many)
@@ -97,7 +122,7 @@ namespace api.Controllers
                     //set required fields for supplier if required
                     if (status.status.Equals("Supplied", StringComparison.OrdinalIgnoreCase))
                     {
-                        data.adminName = status.Clone().name;
+                        //data.adminName = status.Clone().name;
                         data.dateSupplied = status.Clone().date;
                     }
 
@@ -239,18 +264,12 @@ namespace api.Controllers
 
             //your code here;
             con.Close();
-            return items;
+
+            returnItem.items = new List<Request>(items);
+            return returnItem;
         }
 
-        private object List<T1>()
-        {
-            throw new NotImplementedException();
-        }
 
-        private object List<T1>()
-        {
-            throw new NotImplementedException();
-        }
 
         // GET: api/Request/5
         public Request Get(int id)
@@ -300,7 +319,21 @@ namespace api.Controllers
                 //could be null
                 data.analysisCode = (requestsReader["code"] ?? "").ToString();
 
+                //find the admin (could be none)
 
+                SqlCommand adminName = new SqlCommand(@"SELECT * FROM requests 
+                                                    INNER JOIN sharepoint_users ON requests.adminid = sharepoint_users.id
+                                                    WHERE requests.id = " + data.id, con);
+                adminName.CommandTimeout = 0;
+                SqlDataReader adminNameReader = adminName.ExecuteReader();
+
+                while (adminNameReader.Read())
+                {
+
+                    data.adminName = (string)adminNameReader["name"];
+
+
+                }
 
                 //find the status' (could be many)
 
@@ -335,7 +368,7 @@ namespace api.Controllers
                     //set required fields for supplier if required
                     if (status.status.Equals("Supplied", StringComparison.OrdinalIgnoreCase))
                     {
-                        data.adminName = status.Clone().name;
+                        //data.adminName = status.Clone().name;
                         data.dateSupplied = status.Clone().date;
                     }
 
@@ -667,7 +700,7 @@ namespace api.Controllers
             //insert status if there is one (there always will be at least 1)
             if (!string.IsNullOrEmpty(data.status))
             {
-                //check if admin changed the status (ie admin name exists)
+                //check if admin changed the status (ie admin name exists) - will likely never happen as admins only modify existing requests
                 if (!string.IsNullOrEmpty(data.adminName))
                 {
                     SqlCommand adminUsers = new SqlCommand(@"SELECT id FROM sharepoint_users WHERE name = '" + data.adminName + "'", con);
@@ -835,13 +868,15 @@ namespace api.Controllers
 
 
             //check if user has changed
-            if (!(data.name.Equals(request.name, StringComparison.OrdinalIgnoreCase) && data.phone.Equals(request.name, StringComparison.OrdinalIgnoreCase) && data.email.Equals(request.name, StringComparison.OrdinalIgnoreCase)))
+            if (!(data.name.Equals(request.name, StringComparison.OrdinalIgnoreCase) && data.phone.Equals(request.phone, StringComparison.Ordinal) && data.email.Equals(request.email, StringComparison.Ordinal)))
             {
 
                 //UPDATE/INSERT NEW USER
 
                 //check if user exists from the data given
-                SqlCommand users = new SqlCommand(@"SELECT id FROM sharepoint_users WHERE name = '" + data.name + "' AND email = '" + data.name + "' AND phone = '" + data.phone + "'", con);
+
+                Console.WriteLine(request.name);
+                SqlCommand users = new SqlCommand(@"SELECT id FROM sharepoint_users WHERE name = '" + data.name + "' AND email = '" + data.email + "' AND phone = '" + data.phone + "'", con);
 
 
 
@@ -872,6 +907,45 @@ namespace api.Controllers
                 updateRequestUser.Parameters.AddWithValue("@requestid", id);
 
                 updateRequestUser.ExecuteScalar();
+            }
+
+            //check if admin has changed
+            if (!(data.adminName.Equals(request.adminName, StringComparison.OrdinalIgnoreCase)))
+            {
+
+                //UPDATE/INSERT NEW USER
+
+                //check if user exists from the data given
+                SqlCommand adminUsers = new SqlCommand(@"SELECT id FROM sharepoint_users WHERE name = '" + data.adminName + "'", con);
+
+
+
+                SqlDataReader adminUsersReader = adminUsers.ExecuteReader();
+
+
+                int adminid = 436; //default empty user
+                try
+                {
+                    adminUsersReader.Read();
+                    adminid = (int)adminUsersReader["id"];
+                }
+                catch
+                {
+                    //need to create new user
+                    SqlCommand newAdminUser = new SqlCommand(@"INSERT INTO sharepoint_users (name) OUTPUT INSERTED.id VALUES (@name)", con);
+                    newAdminUser.Parameters.AddWithValue("@name", data.adminName);
+
+
+                    //retreive the userid
+                    adminid = (int)newAdminUser.ExecuteScalar();
+                }
+
+                //perform update on main request
+                SqlCommand updateRequestAdminUser = new SqlCommand(@"UPDATE requests SET adminid = @adminid WHERE id = @requestid", con);
+                updateRequestAdminUser.Parameters.AddWithValue("@adminid", adminid);
+                updateRequestAdminUser.Parameters.AddWithValue("@requestid", id);
+
+                updateRequestAdminUser.ExecuteScalar();
             }
 
 

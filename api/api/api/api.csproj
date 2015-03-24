@@ -39,6 +39,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="EntityFramework">
+      <HintPath>..\packages\EntityFramework.6.1.1\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer">
+      <HintPath>..\packages\EntityFramework.6.1.1\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -47,6 +53,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.5.2.3\lib\net45\System.Net.Http.Formatting.dll</HintPath>
     </Reference>
+    <Reference Include="System.Security" />
     <Reference Include="System.Web.Cors">
       <HintPath>..\packages\Microsoft.AspNet.Cors.5.2.3\lib\net45\System.Web.Cors.dll</HintPath>
     </Reference>
@@ -162,10 +169,28 @@
     <Compile Include="Controllers\RequestController.cs" />
     <Compile Include="Controllers\SupplierController.cs" />
     <Compile Include="Controllers\ValuesController.cs" />
+    <Compile Include="EModels\account.cs" />
+    <Compile Include="EModels\analysis_codes.cs" />
+    <Compile Include="EModels\description.cs" />
+    <Compile Include="EModels\EModels.cs" />
+    <Compile Include="EModels\request.cs" />
+    <Compile Include="EModels\request_admin_notes.cs" />
+    <Compile Include="EModels\request_items.cs" />
+    <Compile Include="EModels\request_payments.cs" />
+    <Compile Include="EModels\request_permits.cs" />
+    <Compile Include="EModels\request_status.cs" />
+    <Compile Include="EModels\request_suppliers.cs" />
+    <Compile Include="EModels\room.cs" />
+    <Compile Include="EModels\sharepoint_permissions.cs" />
+    <Compile Include="EModels\sharepoint_usergroups.cs" />
+    <Compile Include="EModels\sharepoint_users.cs" />
+    <Compile Include="EModels\supplier.cs" />
+    <Compile Include="EModels\tooltip.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\AnalysisCode.cs" />
+    <Compile Include="Models\RequestPaginate.cs" />
     <Compile Include="Models\Status.cs" />
     <Compile Include="Models\Request.cs" />
     <Compile Include="Models\Supplier.cs" />
