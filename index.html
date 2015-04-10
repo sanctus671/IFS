@@ -50,14 +50,14 @@
           
           
         <li ng-controller="ModalCtrl"><button ng-click="openFilter('md')" class="btn btn-default" style="margin-top: 8px;" title="Filter all requests"><i class="fa fa-filter"></i></button></li>
-        <li ng-controller="MainController"><button ng-click="filterRequests()" class="btn btn-default" style="margin-top: 8px;margin-left: 13px;" title="Reset filter"><i class="fa fa-refresh"></i></button></li>
+        <li ng-controller="MainController"><button ng-click="resetRequests()" class="btn btn-default" style="margin-top: 8px;margin-left: 13px;" title="Reset filter"><i class="fa fa-refresh"></i></button></li>
       </ul>
         
       <form class="navbar-form navbar-right" role="search">
-        <div class="input-group">
-            <input type="text" ng-model="q" class="form-control" placeholder="Search requests...">
+        <div ng-controller="MainController" class="input-group">
+            <input type="text" ng-model="searchString" class="form-control" placeholder="Search requests...">
             <span class="input-group-btn">
-                <button class="btn btn-default" type="button"><i class="fa fa-search"></i></button>
+                <button ng-click="searchRequests()" class="btn btn-default" type="button"><i class="fa fa-search"></i></button>
             </span>
         </div>
       </form> 

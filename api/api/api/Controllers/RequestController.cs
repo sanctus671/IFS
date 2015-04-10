@@ -7,6 +7,7 @@ using System.Web.Http;
 using api.Models;
 using System.Data.SqlClient;
 using System.Web.Http.Cors;
+using api.EModels;
 
 namespace api.Controllers
 {
@@ -14,259 +15,352 @@ namespace api.Controllers
     public class RequestController : ApiController
     {
         // GET: api/Request
-        public RequestPaginate Get(int offset = 0, int limit = 1000)
+        public RequestPaginate Get(int offset = 0, int limit = 1000, string search = null, string filterString = null)
         {
-            RequestPaginate returnItem = new RequestPaginate();
+            RequestPaginate returnRequests = new RequestPaginate();
 
 
-            string source = @"Data Source=TAYLOR-HP;Initial Catalog=ifs_new;Integrated Security=True;MultipleActiveResultSets=true";
-            SqlConnection con = new SqlConnection(source);
-            con.Open();
 
-            //get total number of requests
-            SqlCommand requestsTotal = new SqlCommand(@"SELECT COUNT(*) FROM requests;", con);
+            using (var db = new EModelsContext()){
 
-            returnItem.count = (int)requestsTotal.ExecuteScalar();
+                var result = new List<request>();
 
-            List<string> usergroup = null;
-
-            //MU.IFS.Webapi
-            SqlCommand requests = new SqlCommand(@"SELECT * FROM requests 
-                                                    INNER JOIN rooms ON requests.roomid = rooms.id 
-                                                    INNER JOIN accounts ON requests.accountid = accounts.id 
-                                                    INNER JOIN sharepoint_users ON requests.userid = sharepoint_users.id 
-                                                    INNER JOIN request_items ON requests.id = request_items.requestid 
-                                                    INNER JOIN items ON request_items.itemid = items.id 
-                                                    INNER JOIN descriptions ON items.descriptionid = descriptions.id
-                                                    LEFT JOIN analysis_codes ON requests.codeid = analysis_codes.id  ORDER BY requests.id DESC OFFSET " + offset + " ROWS FETCH NEXT " + limit + " ROWS ONLY", con);
-            requests.CommandTimeout = 0;
-            SqlDataReader requestsReader = requests.ExecuteReader();
-
-            List<Request> items = new List<Request>();
-
-            while (requestsReader.Read())
-            {
-                Request data = new Request();
-
-
-                //fill in what we have from initial SQL call
-                data.id = (int)requestsReader["id"];
-                data.notes = (string)requestsReader["notes"];
-                data.destinationRoom = (string)requestsReader["room"];
-                data.accountNumber = (string)requestsReader["number"];
-
-
-                data.name = (requestsReader["name"] ?? "").ToString();
-                data.phone = (requestsReader["phone"] ?? "").ToString();
-                data.email = (requestsReader["email"] ?? "").ToString(); 
-                
-                data.type = (string)requestsReader["type"];
-                data.cas = (requestsReader["cas"] ?? "").ToString();
-
-                data.itemDescription = (requestsReader["description"] ?? "").ToString();
-                data.quality = (requestsReader["quality"] ?? "").ToString();
-                data.size = (requestsReader["size"] ?? "").ToString();
-                data.quantity = (int)(requestsReader["quantity"] ?? 0);
-                data.vertere = (int)(requestsReader["vertere"] ?? 0);
-
-                //could be null
-                data.analysisCode = (requestsReader["code"] ?? "").ToString();
-
-                //find the admin (could be none)
-
-                SqlCommand adminName = new SqlCommand(@"SELECT * FROM requests 
-                                                    INNER JOIN sharepoint_users ON requests.adminid = sharepoint_users.id
-                                                    WHERE requests.id = " + data.id, con);
-                adminName.CommandTimeout = 0;
-                SqlDataReader adminNameReader = adminName.ExecuteReader();
-
-                while (adminNameReader.Read())
+                //search and filtering
+                if (!String.IsNullOrWhiteSpace(search) && filterString != null)
                 {
+                    var stringProperties = typeof(request).GetProperties().Where(prop => prop.PropertyType == search.GetType());
 
-                    data.adminName = (string)adminNameReader["name"];
-     
+                    var filterArray = filterString.Split(';');
 
-                }
+                    Filter filter = new Filter();
+                    filter.field = filterArray[0];
+                    filter.option = filterArray[1];
 
-                
-                //find the status' (could be many)
+                    //filter is array containing field, option, values (array, could be value,date,date1,date2)
 
-                SqlCommand statuses = new SqlCommand(@"SELECT * FROM request_status  
-                                                    INNER JOIN sharepoint_users ON request_status.userid = sharepoint_users.id 
-                                                    WHERE request_status.requestid = " + data.id + " ORDER BY request_status.date ASC", con);
-                statuses.CommandTimeout = 0;
-                SqlDataReader statusesReader = statuses.ExecuteReader();
-                
-                List<Status> dataStatuses = new List<Status>();
 
-                int x = 0;
+                    var field = typeof(request).GetProperty(filter.field);
+                    if (filter.option.Equals("contain"))
+                    {
+                        filter.value = filterArray[2];
+                        if (filter.field.Equals("supplier"))
+                        {
+                            result = db.requests.Where(req => req.request_suppliers.OrderBy(s => s.id).FirstOrDefault().supplier.name.Contains(filter.value) &&
+                                (req.sharepoint_users.name.Contains(search) ||
+                                req.account.number.Contains(search) ||
+                                req.room.room1.Contains(search) ||
+                                req.sharepoint_users.email.Contains(search) ||
+                                req.request_items.OrderBy(i => i.id).FirstOrDefault().description.description1.Contains(search) ||
+                                req.request_status.OrderBy(t => t.date).FirstOrDefault().status.Contains(search))
+                                ).OrderByDescending(req => req.id).Skip(offset).Take(limit).ToList();
 
-                //need to define status out here to read the last status once done
-                Status status = new Status();
-                while (statusesReader.Read())
-                {
+                        }
+                        else if (filter.field.Equals("accountNumber"))
+                        {
+                            result = db.requests.Where(req => req.account.number.Contains(filter.value) &&
+                                (req.sharepoint_users.name.Contains(search) ||
+                                req.account.number.Contains(search) ||
+                                req.room.room1.Contains(search) ||
+                                req.sharepoint_users.email.Contains(search) ||
+                                req.request_items.OrderBy(i => i.id).FirstOrDefault().description.description1.Contains(search) ||
+                                req.request_status.OrderBy(t => t.date).FirstOrDefault().status.Contains(search))
+                                ).OrderByDescending(req => req.id).Skip(offset).Take(limit).ToList();
+                        }
+                        else if (filter.field.Equals("type"))
+                        {
+                            result = db.requests.Where(req => req.request_items.OrderBy(i => i.id).FirstOrDefault().description.type.Contains(filter.value) &&
+                                (req.sharepoint_users.name.Contains(search) ||
+                                req.account.number.Contains(search) ||
+                                req.room.room1.Contains(search) ||
+                                req.sharepoint_users.email.Contains(search) ||
+                                req.request_items.OrderBy(i => i.id).FirstOrDefault().description.description1.Contains(search) ||
+                                req.request_status.OrderBy(t => t.date).FirstOrDefault().status.Contains(search))
+                                ).OrderByDescending(req => req.id).Skip(offset).Take(limit).ToList();
+                        }
+                        else if (filter.field.Equals("description"))
+                        {
+                            result = db.requests.Where(req => req.request_items.OrderBy(i => i.id).FirstOrDefault().description.description1.Contains(filter.value) &&
+                                (req.sharepoint_users.name.Contains(search) ||
+                                req.account.number.Contains(search) ||
+                                req.room.room1.Contains(search) ||
+                                req.sharepoint_users.email.Contains(search) ||
+                                req.request_items.OrderBy(i => i.id).FirstOrDefault().description.description1.Contains(search) ||
+                                req.request_status.OrderBy(t => t.date).FirstOrDefault().status.Contains(search))
+                                ).OrderByDescending(req => req.id).Skip(offset).Take(limit).ToList();
+                        }
+                    }
 
-                    //retreive all statuses
+
+
+
+
+                    else if (filter.option.Equals("notcontain"))
+                    {
+                        filter.value = filterArray[2];
+                        if (filter.field.Equals("supplier"))
+                        {
+                            result = db.requests.Where(req => !req.request_suppliers.OrderBy(s => s.id).FirstOrDefault().supplier.name.Contains(filter.value) &&
+                                (req.sharepoint_users.name.Contains(search) ||
+                                req.account.number.Contains(search) ||
+                                req.room.room1.Contains(search) ||
+                                req.sharepoint_users.email.Contains(search) ||
+                                req.request_items.OrderBy(i => i.id).FirstOrDefault().description.description1.Contains(search) ||
+                                req.request_status.OrderBy(t => t.date).FirstOrDefault().status.Contains(search))
+                                ).OrderByDescending(req => req.id).Skip(offset).Take(limit).ToList();
+
+                        }
+                        else if (filter.field.Equals("accountNumber"))
+                        {
+                            result = db.requests.Where(req => !req.account.number.Contains(filter.value) &&
+                                (req.sharepoint_users.name.Contains(search) ||
+                                req.account.number.Contains(search) ||
+                                req.room.room1.Contains(search) ||
+                                req.sharepoint_users.email.Contains(search) ||
+                                req.request_items.OrderBy(i => i.id).FirstOrDefault().description.description1.Contains(search) ||
+                                req.request_status.OrderBy(t => t.date).FirstOrDefault().status.Contains(search))
+                                ).OrderByDescending(req => req.id).Skip(offset).Take(limit).ToList();
+                        }
+                        else if (filter.field.Equals("type"))
+                        {
+                            result = db.requests.Where(req => !req.request_items.OrderBy(i => i.id).FirstOrDefault().description.type.Contains(filter.value) &&
+                                (req.sharepoint_users.name.Contains(search) ||
+                                req.account.number.Contains(search) ||
+                                req.room.room1.Contains(search) ||
+                                req.sharepoint_users.email.Contains(search) ||
+                                req.request_items.OrderBy(i => i.id).FirstOrDefault().description.description1.Contains(search) ||
+                                req.request_status.OrderBy(t => t.date).FirstOrDefault().status.Contains(search))
+                                ).OrderByDescending(req => req.id).Skip(offset).Take(limit).ToList();
+                        }
+                        else if (filter.field.Equals("description"))
+                        {
+                            result = db.requests.Where(req => !req.request_items.OrderBy(i => i.id).FirstOrDefault().description.description1.Contains(filter.value) &&
+                                (req.sharepoint_users.name.Contains(search) ||
+                                req.account.number.Contains(search) ||
+                                req.room.room1.Contains(search) ||
+                                req.sharepoint_users.email.Contains(search) ||
+                                req.request_items.OrderBy(i => i.id).FirstOrDefault().description.description1.Contains(search) ||
+                                req.request_status.OrderBy(t => t.date).FirstOrDefault().status.Contains(search))
+                                ).OrderByDescending(req => req.id).Skip(offset).Take(limit).ToList();
+                        }
+                    }
+
+
+
+
+
+
+
+                    else if (filter.option.Equals("after"))
+                    {
+                        filter.date1 = Convert.ToDateTime(filterArray[2]);
+                        result = db.requests.Where(req => (DateTime)req.request_status.OrderBy(i => i.id).FirstOrDefault().date < filter.date1 &&
+                            (req.sharepoint_users.name.Contains(search) ||
+                            req.account.number.Contains(search) ||
+                            req.room.room1.Contains(search) ||
+                            req.sharepoint_users.email.Contains(search) ||
+                            req.request_items.OrderBy(i => i.id).FirstOrDefault().description.description1.Contains(search) ||
+                            req.request_status.OrderBy(t => t.date).FirstOrDefault().status.Contains(search))
+                            ).OrderByDescending(req => req.id).Skip(offset).Take(limit).ToList();
+                    }
+                    else if (filter.option.Equals("before"))
+                    {
+                        filter.date1 = Convert.ToDateTime(filterArray[2]);
+                        result = db.requests.Where(req => (DateTime)req.request_status.OrderBy(i => i.id).FirstOrDefault().date > filter.date1 &&
+                            (req.sharepoint_users.name.Contains(search) ||
+                            req.account.number.Contains(search) ||
+                            req.room.room1.Contains(search) ||
+                            req.sharepoint_users.email.Contains(search) ||
+                            req.request_items.OrderBy(i => i.id).FirstOrDefault().description.description1.Contains(search) ||
+                            req.request_status.OrderBy(t => t.date).FirstOrDefault().status.Contains(search))
+                            ).OrderByDescending(req => req.id).Skip(offset).Take(limit).ToList();
+                    }
+                    else if (filter.option.Equals("between"))
+                    {
+                        filter.date1 = Convert.ToDateTime(filterArray[2]);
+                        filter.date2 = Convert.ToDateTime(filterArray[3]);
+                        result = db.requests.Where(req => (DateTime)req.request_status.OrderBy(i => i.id).FirstOrDefault().date > filter.date1 && (DateTime)req.request_status.OrderBy(i => i.id).FirstOrDefault().date < filter.date2 &&
+                            (req.sharepoint_users.name.Contains(search) ||
+                            req.account.number.Contains(search) ||
+                            req.room.room1.Contains(search) ||
+                            req.sharepoint_users.email.Contains(search) ||
+                            req.request_items.OrderBy(i => i.id).FirstOrDefault().description.description1.Contains(search) ||
+                            req.request_status.OrderBy(t => t.date).FirstOrDefault().status.Contains(search))
+                            ).OrderByDescending(req => req.id).Skip(offset).Take(limit).ToList();
+                    }
+                    else if (filter.option.Equals("notbetween"))
+                    {
+                        filter.date1 = Convert.ToDateTime(filterArray[2]);
+                        filter.date2 = Convert.ToDateTime(filterArray[3]);
+                        result = db.requests.Where(req => (DateTime)req.request_status.OrderBy(i => i.id).FirstOrDefault().date < filter.date1 || (DateTime)req.request_status.OrderBy(i => i.id).FirstOrDefault().date > filter.date2 &&
+                            (req.sharepoint_users.name.Contains(search) ||
+                            req.account.number.Contains(search) ||
+                            req.room.room1.Contains(search) ||
+                            req.sharepoint_users.email.Contains(search) ||
+                            req.request_items.OrderBy(i => i.id).FirstOrDefault().description.description1.Contains(search) ||
+                            req.request_status.OrderBy(t => t.date).FirstOrDefault().status.Contains(search))
+                            ).OrderByDescending(req => req.id).Skip(offset).Take(limit).ToList();
+                    }
                     
+                }
 
-                    status.requestid = (int)statusesReader["requestid"];
-                    status.name = (string)statusesReader["name"];
-                    status.status = (string)statusesReader["status"];
-                    status.date = (DateTime)statusesReader["date"];
+                //just search
+                else if (!String.IsNullOrWhiteSpace(search))
+                {
+                    //var stringProperties = typeof(request).GetProperties().Where(prop => prop.PropertyType == search.GetType());
 
-                    //first status = request date
-                    if (x == 0)
+
+                    result = db.requests.Where(req =>
+                            (req.sharepoint_users.name.Contains(search) ||
+                            req.account.number.Contains(search) ||
+                            req.room.room1.Contains(search) ||
+                            req.sharepoint_users.email.Contains(search) ||
+                            req.request_items.OrderBy(i => i.id).FirstOrDefault().description.description1.Contains(search) ||
+                            req.request_status.OrderBy(t => t.date).FirstOrDefault().status.Contains(search))
+                            ).OrderByDescending(req => req.id).Skip(offset).Take(limit).ToList();
+                }
+
+                //just filtering
+                else if (filterString != null)
+                {
+
+                    var filterArray = filterString.Split(';');
+
+                    Filter filter = new Filter();
+                    filter.field = filterArray[0];
+                    filter.option = filterArray[1];
+
+                    if (filter.option.Equals("contain"))
                     {
-                        data.date = status.Clone().date;
+                        filter.value = filterArray[2];
+                        if (filter.field.Equals("supplier"))
+                        {
+                            result = db.requests.Where(req => req.request_suppliers.OrderBy(s => s.id).FirstOrDefault().supplier.name.Contains(filter.value)).OrderByDescending(req => req.id).Skip(offset).Take(limit).ToList();
+
+                        }
+                        else if (filter.field.Equals("accountNumber"))
+                        {
+                            result = db.requests.Where(req => req.account.number.Contains(filter.value)).OrderByDescending(req => req.id).Skip(offset).Take(limit).ToList();
+                        }
+                        else if (filter.field.Equals("type"))
+                        {
+                            result = db.requests.Where(req => req.request_items.OrderBy(i => i.id).FirstOrDefault().description.type.Contains(filter.value)).OrderByDescending(req => req.id).Skip(offset).Take(limit).ToList();
+                        }
+                        else if (filter.field.Equals("description"))
+                        {
+                            result = db.requests.Where(req => req.request_items.OrderBy(i => i.id).FirstOrDefault().description.description1.Contains(filter.value)).OrderByDescending(req => req.id).Skip(offset).Take(limit).ToList();
+                        }
                     }
-                    //set required fields for supplier if required
-                    if (status.status.Equals("Supplied", StringComparison.OrdinalIgnoreCase))
+
+
+                    else if (filter.option.Equals("notcontain"))
                     {
-                        //data.adminName = status.Clone().name;
-                        data.dateSupplied = status.Clone().date;
+                        filter.value = filterArray[2];
+                        if (filter.field.Equals("supplier"))
+                        {
+                            result = db.requests.Where(req => !req.request_suppliers.OrderBy(s => s.id).FirstOrDefault().supplier.name.Contains(filter.value)).OrderByDescending(req => req.id).Skip(offset).Take(limit).ToList();
+
+                        }
+                        else if (filter.field.Equals("accountNumber"))
+                        {
+                            result = db.requests.Where(req => !req.account.number.Contains(filter.value)).OrderByDescending(req => req.id).Skip(offset).Take(limit).ToList();
+                        }
+                        else if (filter.field.Equals("type"))
+                        {
+                            result = db.requests.Where(req => !req.request_items.OrderBy(i => i.id).FirstOrDefault().description.type.Contains(filter.value)).OrderByDescending(req => req.id).Skip(offset).Take(limit).ToList();
+                        }
+                        else if (filter.field.Equals("description"))
+                        {
+                            result = db.requests.Where(req => !req.request_items.OrderBy(i => i.id).FirstOrDefault().description.description1.Contains(filter.value)).OrderByDescending(req => req.id).Skip(offset).Take(limit).ToList();
+                        }
                     }
 
-                    //add clone of the current object (else causes object reference errors)
-                    dataStatuses.Add(status.Clone());
 
-                    x++;
+                    else if (filter.option.Equals("after"))
+                    {
+                        filter.date1 = Convert.ToDateTime(filterArray[2]);
+                        result = db.requests.Where(req => (DateTime)req.request_status.OrderBy(i => i.id).FirstOrDefault().date < filter.date1).OrderByDescending(req => req.id).Skip(offset).Take(limit).ToList();
+                    }
+                    else if (filter.option.Equals("before"))
+                    {
+                        filter.date1 = Convert.ToDateTime(filterArray[2]);
+                        result = db.requests.Where(req => (DateTime)req.request_status.OrderBy(i => i.id).FirstOrDefault().date > filter.date1).OrderByDescending(req => req.id).Skip(offset).Take(limit).ToList();
+                    }
+                    else if (filter.option.Equals("between"))
+                    {
+                        filter.date1 = Convert.ToDateTime(filterArray[2]);
+                        filter.date2 = Convert.ToDateTime(filterArray[3]);
+                        result = db.requests.Where(req => (DateTime)req.request_status.OrderBy(i => i.id).FirstOrDefault().date > filter.date1 && (DateTime)req.request_status.OrderBy(i => i.id).FirstOrDefault().date < filter.date2).OrderByDescending(req => req.id).Skip(offset).Take(limit).ToList();
+                    }
+                    else if (filter.option.Equals("notbetween"))
+                    {
+                        filter.date1 = Convert.ToDateTime(filterArray[2]);
+                        filter.date2 = Convert.ToDateTime(filterArray[3]);
+                        result = db.requests.Where(req => (DateTime)req.request_status.OrderBy(i => i.id).FirstOrDefault().date < filter.date1 || (DateTime)req.request_status.OrderBy(i => i.id).FirstOrDefault().date > filter.date2).OrderByDescending(req => req.id).Skip(offset).Take(limit).ToList();
+                    }
                 }
+                
+                //normal
+                else{
+                    result = db.requests.OrderByDescending(req => req.id).Skip(offset).Take(limit).ToList();
+                }
+                
 
-                //latest status = request status
-                data.status = status.status;
+                returnRequests.count =  db.requests.Count();
 
-
-                //set all statuses
-                data.statusArray = dataStatuses;
-
-
-
-
-                //find all payments (could be 1 or none)
-
-                SqlCommand payments = new SqlCommand(@"SELECT * FROM request_payments  
-                                                    WHERE requestid = " + data.id, con);
-
-                SqlDataReader paymentsReader = payments.ExecuteReader();
-
-
-
-                x = 0;
-
-
-                while (paymentsReader.Read())
+                foreach (var eRequest in result)
                 {
-                    (requestsReader["name"] ?? "").ToString();
-                    //there's a payment, and they'll only ever be one so set the data array directly
-                    data.cost = (decimal)paymentsReader["cost"];
-                    data.paymentType = (string)paymentsReader["type"];
-                    data.pnNumber = (paymentsReader["pnnumber"] ?? "").ToString();
-                    data.invoiceDetails = (paymentsReader["invoice"] ?? "").ToString();
-                    x++;
+                    try
+                    {
+                        Request returnRequest = new Request();
+                        returnRequest.id = eRequest.id;
+                        returnRequest.status = eRequest.request_status.LastOrDefault().status;
+                        returnRequest.statusArray = new List<Status>();
+                        foreach (var eStatus in eRequest.request_status)
+                        {
+                            Status status = new Status();
+                            status.status = eStatus.status;
+                            status.name = eStatus.sharepoint_users.name;
+                            status.date = eStatus.date;
+                            returnRequest.statusArray.Add(status);
+                        }
+                        returnRequest.date = eRequest.request_status.LastOrDefault().date;
+                        returnRequest.name = eRequest.sharepoint_users.name;
+                        returnRequest.phone = eRequest.sharepoint_users.phone;
+                        returnRequest.email = eRequest.sharepoint_users.email;
+                        returnRequest.type = eRequest.request_items.LastOrDefault().description.type;
+                        returnRequest.destinationRoom = eRequest.room.room1;
+                        returnRequest.itemDescription = eRequest.request_items.LastOrDefault().description.description1;
+                        returnRequest.quality = eRequest.request_items.LastOrDefault().quality;
+                        returnRequest.size = eRequest.request_items.LastOrDefault().size;
+                        returnRequest.quantity = (int)eRequest.request_items.LastOrDefault().quantity;
+                        returnRequest.vertere = (int)eRequest.request_items.LastOrDefault().vertere;
+                        returnRequest.notes = eRequest.notes;
+                        returnRequest.cas = eRequest.request_items.LastOrDefault().cas;
+                        returnRequest.accountNumber = eRequest.account.number;
+                        returnRequest.supplier = eRequest.request_suppliers.Count < 1 ? String.Empty : eRequest.request_suppliers.LastOrDefault().supplier.name;
+                        returnRequest.dateSupplied = eRequest.request_status.Count < 1 ? DateTime.MinValue : eRequest.request_status.LastOrDefault(s => s.status == "Supplied") == null ? DateTime.MinValue : eRequest.request_status.LastOrDefault(s => s.status == "Supplied").date;
+                        returnRequest.adminName = eRequest.request_status.LastOrDefault(s => s.status != "Requested").sharepoint_users.name;
+                        returnRequest.cost = (decimal)eRequest.request_payments.LastOrDefault().cost;
+                        returnRequest.adminNotes = eRequest.request_admin_notes.Count < 1 ? String.Empty : eRequest.request_admin_notes.LastOrDefault().note;
+                        returnRequest.analysisCode = eRequest.analysis_codes == null ? String.Empty : eRequest.analysis_codes.code;
+                        returnRequest.permit = eRequest.request_permits.Count > 0;
+                        returnRequest.permitNumber = eRequest.request_permits.Count < 1 ? String.Empty : eRequest.request_permits.LastOrDefault().number;
+                        returnRequest.paymentType = eRequest.request_payments.LastOrDefault().type;
+                        returnRequest.pnNumber = eRequest.request_payments.LastOrDefault().pnnumber;
+                        returnRequest.invoiceDetails = eRequest.request_payments.LastOrDefault().invoice;
+
+                        returnRequests.items.Add(returnRequest);
+                    }
+
+                    catch (Exception e)
+                    {
+                        
+                    }
                 }
 
-                if (x == 0)
-                {
-                    //no payments yet, add some fillers
-                    data.cost = (decimal)0;
-                    data.paymentType = (string)"";
-                    data.pnNumber = (string)"";
-                    data.invoiceDetails = (string)"";
-                }
+            } 
 
-
-
-                //find all permits (could be 1 or none)
-
-                SqlCommand permits = new SqlCommand(@"SELECT * FROM request_permits  
-                                                    WHERE requestid = " + data.id, con);
-
-                SqlDataReader permitsReader = permits.ExecuteReader();
-
-
-
-                x = 0;
-
-
-                while (permitsReader.Read())
-                {
-                    //there's a permit, and they'll only ever be one so set the data array directly
-                    data.permit = true;
-                    data.permitNumber = (string)permitsReader["number"];
-                    x++;
-                }
-
-                if (x == 0)
-                {
-                    //no permits yet, add some fillers
-                    data.permit = false;
-                    data.permitNumber = (string)"";
-                }
-
-
-
-                //find all suppliers (could be 1 or none)
-
-                SqlCommand suppliers = new SqlCommand(@"SELECT * FROM request_suppliers INNER JOIN suppliers ON request_suppliers.supplierid = suppliers.id  
-                                                    WHERE request_suppliers.requestid = " + data.id, con);
-
-                SqlDataReader suppliersReader = suppliers.ExecuteReader();
-
-
-
-                x = 0;
-
-
-                while (suppliersReader.Read())
-                {
-                    //there's a supplier, and they'll only ever be one so set the data array directly
-                    data.supplier = (string)suppliersReader["name"];
-                    x++;
-                }
-
-                if (x == 0)
-                {
-                    //no suppliers yet, add some fillers
-                    data.supplier = (string)"";
-                }
-
-
-
-                //find all admin notes (could be 1 or none)
-
-                SqlCommand adminNotes = new SqlCommand(@"SELECT * FROM request_admin_notes   
-                                                    WHERE requestid = " + data.id, con);
-
-                SqlDataReader adminNotesReader = adminNotes.ExecuteReader();
-
-
-
-                x = 0;
-
-
-                while (adminNotesReader.Read())
-                {
-                    //there's a admin note, and they'll only ever be one so set the data array directly
-                    data.adminNotes = (string)adminNotesReader["note"];
-                    x++;
-                }
-
-                if (x == 0)
-                {
-                    //no admin notes yet, add some fillers
-                    data.adminNotes = (string)"";
-                }
-
-
-
-                items.Add(data);
-            }
-
-            //your code here;
-            con.Close();
-
-            returnItem.items = new List<Request>(items);
-            return returnItem;
+            return returnRequests;
         }
 
 
@@ -274,585 +368,173 @@ namespace api.Controllers
         // GET: api/Request/5
         public Request Get(int id)
         {
+            Request returnRequest = new Request();
 
-            string source = @"Data Source=TAYLOR-HP;Initial Catalog=ifs_new;Integrated Security=True;MultipleActiveResultSets=true";
-            SqlConnection con = new SqlConnection(source);
-            con.Open();
-
-            SqlCommand requests = new SqlCommand(@"SELECT * FROM requests 
-                                                    INNER JOIN rooms ON requests.roomid = rooms.id 
-                                                    INNER JOIN accounts ON requests.accountid = accounts.id 
-                                                    INNER JOIN sharepoint_users ON requests.userid = sharepoint_users.id 
-                                                    INNER JOIN request_items ON requests.id = request_items.requestid 
-                                                    INNER JOIN items ON request_items.itemid = items.id 
-                                                    INNER JOIN descriptions ON items.descriptionid = descriptions.id
-                                                    LEFT JOIN analysis_codes ON requests.codeid = analysis_codes.id WHERE requests.id = " + id, con);
-            requests.CommandTimeout = 0;
-            SqlDataReader requestsReader = requests.ExecuteReader();
-
-
-            while (requestsReader.Read())
+            using (var db = new EModelsContext())
             {
-                Request data = new Request();
 
+                request eRequest = db.requests.Where(req => req.id.Equals(id)).Single();
 
-                //fill in what we have from initial SQL call
-                data.id = (int)requestsReader["id"];
-                data.notes = (string)requestsReader["notes"];
-                data.destinationRoom = (string)requestsReader["room"];
-                data.accountNumber = (string)requestsReader["number"];
-
-
-                data.name = (requestsReader["name"] ?? "").ToString();
-                data.phone = (requestsReader["phone"] ?? "").ToString();
-                data.email = (requestsReader["email"] ?? "").ToString();
-
-                data.type = (string)requestsReader["type"];
-                data.cas = (requestsReader["cas"] ?? "").ToString();
-
-                data.itemDescription = (requestsReader["description"] ?? "").ToString();
-                data.quality = (requestsReader["quality"] ?? "").ToString();
-                data.size = (requestsReader["size"] ?? "").ToString();
-                data.quantity = (int)(requestsReader["quantity"] ?? 0);
-                data.vertere = (int)(requestsReader["vertere"] ?? 0);
-
-                //could be null
-                data.analysisCode = (requestsReader["code"] ?? "").ToString();
-
-                //find the admin (could be none)
-
-                SqlCommand adminName = new SqlCommand(@"SELECT * FROM requests 
-                                                    INNER JOIN sharepoint_users ON requests.adminid = sharepoint_users.id
-                                                    WHERE requests.id = " + data.id, con);
-                adminName.CommandTimeout = 0;
-                SqlDataReader adminNameReader = adminName.ExecuteReader();
-
-                while (adminNameReader.Read())
+                
+                returnRequest.id = eRequest.id;
+                returnRequest.status = eRequest.request_status.LastOrDefault().status;
+                returnRequest.statusArray = new List<Status>();
+                foreach (var eStatus in eRequest.request_status)
                 {
-
-                    data.adminName = (string)adminNameReader["name"];
-
-
+                    Status status = new Status();
+                    status.status = eStatus.status;
+                    status.name = eStatus.sharepoint_users.name;
+                    status.date = eStatus.date;
+                    returnRequest.statusArray.Add(status);
                 }
+                returnRequest.date = eRequest.request_status.LastOrDefault().date;
+                returnRequest.name = eRequest.sharepoint_users.name;
+                returnRequest.phone = eRequest.sharepoint_users.phone;
+                returnRequest.email = eRequest.sharepoint_users.email;
+                returnRequest.type = eRequest.request_items.LastOrDefault().description.type;
+                returnRequest.destinationRoom = eRequest.room.room1;
+                returnRequest.itemDescription = eRequest.request_items.LastOrDefault().description.description1;
+                returnRequest.quality = eRequest.request_items.LastOrDefault().quality;
+                returnRequest.size = eRequest.request_items.LastOrDefault().size;
+                returnRequest.quantity = (int)eRequest.request_items.LastOrDefault().quantity;
+                returnRequest.vertere = (int)eRequest.request_items.LastOrDefault().vertere;
+                returnRequest.notes = eRequest.notes;
+                returnRequest.cas = eRequest.request_items.LastOrDefault().cas;
+                returnRequest.accountNumber = eRequest.account.number;
+                returnRequest.supplier = eRequest.request_suppliers.Count < 1 ? String.Empty : eRequest.request_suppliers.LastOrDefault().supplier.name;
+                returnRequest.dateSupplied = eRequest.request_status.Count < 1 ? DateTime.MinValue : eRequest.request_status.LastOrDefault(s => s.status == "Supplied") == null ? DateTime.MinValue : eRequest.request_status.LastOrDefault(s => s.status == "Supplied").date;
+                returnRequest.adminName = eRequest.request_status.LastOrDefault(s => s.status != "Requested").sharepoint_users.name;
+                returnRequest.cost = (decimal)eRequest.request_payments.LastOrDefault().cost;
+                returnRequest.adminNotes = eRequest.request_admin_notes.Count < 1 ? String.Empty : eRequest.request_admin_notes.LastOrDefault().note;
+                returnRequest.analysisCode = eRequest.analysis_codes == null ? String.Empty : eRequest.analysis_codes.code;
+                returnRequest.permit = eRequest.request_permits.Count > 0;
+                returnRequest.permitNumber = eRequest.request_permits.Count < 1 ? String.Empty : eRequest.request_permits.LastOrDefault().number;
+                returnRequest.paymentType = eRequest.request_payments.LastOrDefault().type;
+                returnRequest.pnNumber = eRequest.request_payments.LastOrDefault().pnnumber;
+                returnRequest.invoiceDetails = eRequest.request_payments.LastOrDefault().invoice;
 
-                //find the status' (could be many)
-
-                SqlCommand statuses = new SqlCommand(@"SELECT * FROM request_status  
-                                                    INNER JOIN sharepoint_users ON request_status.userid = sharepoint_users.id 
-                                                    WHERE request_status.requestid = " + data.id + " ORDER BY request_status.date ASC", con);
-                statuses.CommandTimeout = 0;
-                SqlDataReader statusesReader = statuses.ExecuteReader();
-
-                List<Status> dataStatuses = new List<Status>();
-
-                int x = 0;
-
-                //need to define status out here to read the last status once done
-                Status status = new Status();
-                while (statusesReader.Read())
-                {
-
-                    //retreive all statuses
-
-
-                    status.requestid = (int)statusesReader["requestid"];
-                    status.name = (string)statusesReader["name"];
-                    status.status = (string)statusesReader["status"];
-                    status.date = (DateTime)statusesReader["date"];
-
-                    //first status = request date
-                    if (x == 0)
-                    {
-                        data.date = status.Clone().date;
-                    }
-                    //set required fields for supplier if required
-                    if (status.status.Equals("Supplied", StringComparison.OrdinalIgnoreCase))
-                    {
-                        //data.adminName = status.Clone().name;
-                        data.dateSupplied = status.Clone().date;
-                    }
-
-                    //add clone of the current object (else causes object reference errors)
-                    dataStatuses.Add(status.Clone());
-
-                    x++;
-                }
-
-                //latest status = request status
-                data.status = status.status;
-
-
-                //set all statuses
-                data.statusArray = dataStatuses;
-
-
-
-
-                //find all payments (could be 1 or none)
-
-                SqlCommand payments = new SqlCommand(@"SELECT * FROM request_payments  
-                                                    WHERE requestid = " + data.id, con);
-
-                SqlDataReader paymentsReader = payments.ExecuteReader();
-
-
-
-                x = 0;
-
-
-                while (paymentsReader.Read())
-                {
-                    (requestsReader["name"] ?? "").ToString();
-                    //there's a payment, and they'll only ever be one so set the data array directly
-                    data.cost = (decimal)paymentsReader["cost"];
-                    data.paymentType = (string)paymentsReader["type"];
-                    data.pnNumber = (paymentsReader["pnnumber"] ?? "").ToString();
-                    data.invoiceDetails = (paymentsReader["invoice"] ?? "").ToString();
-                    x++;
-                }
-
-                if (x == 0)
-                {
-                    //no payments yet, add some fillers
-                    data.cost = (decimal)0;
-                    data.paymentType = (string)"";
-                    data.pnNumber = (string)"";
-                    data.invoiceDetails = (string)"";
-                }
-
-
-
-                //find all permits (could be 1 or none)
-
-                SqlCommand permits = new SqlCommand(@"SELECT * FROM request_permits  
-                                                    WHERE requestid = " + data.id, con);
-
-                SqlDataReader permitsReader = permits.ExecuteReader();
-
-
-
-                x = 0;
-
-
-                while (permitsReader.Read())
-                {
-                    //there's a permit, and they'll only ever be one so set the data array directly
-                    data.permit = true;
-                    data.permitNumber = (string)permitsReader["number"];
-                    x++;
-                }
-
-                if (x == 0)
-                {
-                    //no permits yet, add some fillers
-                    data.permit = false;
-                    data.permitNumber = (string)"";
-                }
-
-
-
-                //find all suppliers (could be 1 or none)
-
-                SqlCommand suppliers = new SqlCommand(@"SELECT * FROM request_suppliers INNER JOIN suppliers ON request_suppliers.supplierid = suppliers.id  
-                                                    WHERE request_suppliers.requestid = " + data.id, con);
-
-                SqlDataReader suppliersReader = suppliers.ExecuteReader();
-
-
-
-                x = 0;
-
-
-                while (suppliersReader.Read())
-                {
-                    //there's a supplier, and they'll only ever be one so set the data array directly
-                    data.supplier = (string)suppliersReader["name"];
-                    x++;
-                }
-
-                if (x == 0)
-                {
-                    //no suppliers yet, add some fillers
-                    data.supplier = (string)"";
-                }
-
-
-
-                //find all admin notes (could be 1 or none)
-
-                SqlCommand adminNotes = new SqlCommand(@"SELECT * FROM request_admin_notes   
-                                                    WHERE requestid = " + data.id, con);
-
-                SqlDataReader adminNotesReader = adminNotes.ExecuteReader();
-
-
-
-                x = 0;
-
-
-                while (adminNotesReader.Read())
-                {
-                    //there's a admin note, and they'll only ever be one so set the data array directly
-                    data.adminNotes = (string)adminNotesReader["note"];
-                    x++;
-                }
-
-                if (x == 0)
-                {
-                    //no admin notes yet, add some fillers
-                    data.adminNotes = (string)"";
-                }
-
-
-
-                return data;
             }
 
             
-            con.Close();
 
-            return new Request();
+            return returnRequest;
+
 
         }
+
 
         // POST: api/Request
         public void Post([FromBody]Request data)
         {
+        
+            //throw new Exception(data.ToString());
+            using (var db = new EModelsContext())
+            {
+
+                //add main request data
+                request request = new request{
+                    notes = data.notes};
+
+                //foreign keys 1:1
+
+                //account
+                request.account = new account();
+                request.account.number = data.accountNumber;
+                
+
+                //analysis code
+                if (!String.IsNullOrWhiteSpace(data.analysisCode))
+                {
+                    request.analysis_codes = new analysis_codes();
+                    request.analysis_codes.code = data.analysisCode;
+                }
+
+                //user data
+                request.sharepoint_users = new sharepoint_users();
+                request.sharepoint_users.name = data.name;
+                request.sharepoint_users.email = data.email;
+                request.sharepoint_users.phone = data.phone;
+
+                //room
+                request.room = new room();
+                request.room.room1 = data.destinationRoom;
+
+
+                //foreign keys 1:*
+
+                //admin notes
+                if (!String.IsNullOrWhiteSpace(data.analysisCode))
+                {
+                    request.request_admin_notes.Add(new request_admin_notes
+                    {
+                        note = data.adminNotes
+
+                    });
+                }
+
+                //request items
+                request_items request_item = new request_items();
+                request_item.cas = data.cas;
+                request_item.quality = data.quality;
+                request_item.quantity = data.quantity;
+                request_item.size = data.size;
+                request_item.vertere = data.vertere;
+
+                request_item.description = new description();
+                request_item.description.description1 = data.itemDescription;
+                request_item.description.type = data.type;
+
+                request.request_items.Add(request_item);
+
+                //payments
+                request.request_payments.Add(new request_payments
+                    {
+                        type = data.paymentType,
+                        pnnumber = data.pnNumber,
+                        invoice = data.invoiceDetails,
+                        cost = data.cost
+                    });
+
+                //permits
+                request.request_permits.Add(new request_permits
+                    {
+                        number = data.permitNumber
+                    });
+                
+
+                //status
+                string statusName = data.name;
+                if (!data.status.Equals("Requested"))
+                {
+                    statusName = data.adminName;
+                }
+
+                request_status request_status = new request_status();
+                request_status.status = data.status;
+                request_status.date = DateTime.Now;
+                request_status.sharepoint_users = new sharepoint_users();
+                request_status.sharepoint_users.name = statusName;
+
+                request.request_status.Add(request_status);
+
+                //supplier
+                request_suppliers request_supplier = new request_suppliers();
+                request_supplier.supplier = new supplier();
+                request_supplier.supplier.name = data.supplier;
+
+                request.request_suppliers.Add(request_supplier);
+
+
+                //add and save changes
+                db.requests.Add(request);
+
+                db.SaveChanges();
+
+
+
+            }
+
             
-
-            string source = @"Data Source=TAYLOR-HP;Initial Catalog=ifs_new;Integrated Security=True;MultipleActiveResultSets=true";
-            SqlConnection con = new SqlConnection(source);
-            con.Open();
-
-
-            //check if user exists from the data given
-            SqlCommand users = new SqlCommand(@"SELECT id FROM sharepoint_users WHERE name = '" + data.name + "' AND email = '" + data.name + "' AND phone = '"+ data.phone + "'", con);
-
-
-
-            SqlDataReader usersReader = users.ExecuteReader();
-
-            int userid = 436; //default empty user
-            try{
-                usersReader.Read();
-                userid = (int)usersReader["id"];
-            }
-            catch {
-                //need to create new user
-                SqlCommand newUser = new SqlCommand(@"INSERT INTO sharepoint_users (name,phone,email) OUTPUT INSERTED.id VALUES (@name, @phone, @email)", con);
-                newUser.Parameters.AddWithValue("@name", data.name);
-                newUser.Parameters.AddWithValue("@phone", data.phone);
-                newUser.Parameters.AddWithValue("@email", data.email);
-
-                //retreive the userid
-                userid = (int)newUser.ExecuteScalar();
-            }
-
-
-
-
-            //check if room exists
-            int roomid = 426; //default empty room
-            if (!string.IsNullOrEmpty(data.destinationRoom))
-            {
-
-
-                SqlCommand rooms = new SqlCommand(@"SELECT id FROM rooms WHERE room = '" + data.destinationRoom + "'", con);
-                rooms.Parameters.AddWithValue("@room", data.destinationRoom);
-
-                SqlDataReader roomsReader = rooms.ExecuteReader();
-
-                try{
-                    roomsReader.Read();
-                
-                    roomid = (int)roomsReader["id"];
-
-
-                }
-
-                catch
-                {
-                    //need to create new room
-                    SqlCommand newRoom = new SqlCommand(@"INSERT INTO rooms (room) OUTPUT INSERTED.id VALUES (@room)", con);
-                    newRoom.Parameters.AddWithValue("@room", data.destinationRoom);
-
-                    //retreive the roomid
-                    roomid = (int)newRoom.ExecuteScalar();
-                }
-            }
-
-
-
-
-            //check if account exists
-            int accountid = 425; //default empty account
-            if (!string.IsNullOrEmpty(data.accountNumber))
-            {
-                SqlCommand accounts = new SqlCommand(@"SELECT id FROM accounts WHERE number = '" + data.accountNumber + "'", con);
-
-                //throw new Exception(@"SELECT id FROM accounts WHERE number = '" + data.accountNumber + "'");
-                SqlDataReader accountsReader = accounts.ExecuteReader();
-
-   
-                
-                try{
-                    
-                    accountsReader.Read();
-                
-                    accountid = (int)accountsReader["id"];
-
-
-                }
-
-                catch
-                {
-                    //need to create new account
-                    SqlCommand newAccount = new SqlCommand(@"INSERT INTO accounts (number) OUTPUT INSERTED.id VALUES (@number)", con);
-                    newAccount.Parameters.AddWithValue("@number", data.accountNumber);
-
-                    //retreive the accountid
-                    accountid = (int)newAccount.ExecuteScalar();
-                }
-            }
-
-
-            //check if analysis code exists
-            int codeid = 1; //default empty analysis code
-            if (!string.IsNullOrEmpty(data.analysisCode))
-            {
-                SqlCommand analysisCodes = new SqlCommand(@"SELECT id FROM analysis_codes WHERE code = '" + data.analysisCode + "'", con);
-                SqlDataReader analysisCodesReader = analysisCodes.ExecuteReader();
-
-                try{
-                    analysisCodesReader.Read();
-                
-                    codeid = (int)analysisCodesReader["id"];
-
-
-                }
-
-                catch
-                {
-                    //need to create new code
-                    SqlCommand newAnalysisCode = new SqlCommand(@"INSERT INTO analysis_codes (code) OUTPUT INSERTED.id VALUES (@code)", con);
-                    newAnalysisCode.Parameters.AddWithValue("@code", data.analysisCode ?? "");
-
-                    //retreive the accountid
-                    codeid = (int)newAnalysisCode.ExecuteScalar();
-                }
-
-            }
-
-
-
-            //ready to insert main request
-            SqlCommand newRequest = new SqlCommand(@"INSERT INTO requests (userid,roomid,accountid,codeid,notes) OUTPUT INSERTED.id VALUES (@userid,@roomid,@accountid,@codeid,@notes)", con);
-            newRequest.Parameters.AddWithValue("@userid", userid);
-            newRequest.Parameters.AddWithValue("@roomid", roomid);
-            newRequest.Parameters.AddWithValue("@accountid", accountid);
-            newRequest.Parameters.AddWithValue("@codeid", codeid);
-            newRequest.Parameters.AddWithValue("@notes", data.notes ?? "");
-
-            int requestid = (int)newRequest.ExecuteScalar();
-
-
-            //now insert optional things
-
-
-            //insert admin notes if there are any
-            if (!string.IsNullOrEmpty(data.adminNotes))
-            {
-                SqlCommand newAdminNote = new SqlCommand(@"INSERT INTO request_admin_notes (requestid,note) VALUES (@requestid,@note)", con);
-                newAdminNote.Parameters.AddWithValue("@requestid", requestid);
-                newAdminNote.Parameters.AddWithValue("@note", data.adminNotes);
-
-                newAdminNote.ExecuteNonQuery();
-
-            }
-
-            //insert payment if there is one
-            if (!string.IsNullOrEmpty(data.paymentType))
-            {
-                SqlCommand newPayment = new SqlCommand(@"INSERT INTO request_payments (requestid,type,cost,pnnumber,invoice) VALUES (@requestid,@type,@cost,@pnnumber,@invoice)", con);
-                newPayment.Parameters.AddWithValue("@requestid", requestid);
-                newPayment.Parameters.AddWithValue("@type", data.paymentType ?? "internal");
-                newPayment.Parameters.AddWithValue("@cost", data.cost);
-                newPayment.Parameters.AddWithValue("@pnnumber", data.pnNumber ?? "");
-                newPayment.Parameters.AddWithValue("@invoice", data.invoiceDetails ?? "");
-
-                newPayment.ExecuteNonQuery();
-
-            }
-
-            //insert permits if there is one
-            if (data.permit)
-            {
-                SqlCommand newPermit = new SqlCommand(@"INSERT INTO request_permits (requestid,number) VALUES (@requestid,@number)", con);
-                newPermit.Parameters.AddWithValue("@requestid", requestid);
-                newPermit.Parameters.AddWithValue("@number", data.permitNumber);
-
-
-                newPermit.ExecuteNonQuery();
-
-            }
-
-
-            //insert status if there is one (there always will be at least 1)
-            if (!string.IsNullOrEmpty(data.status))
-            {
-                //check if admin changed the status (ie admin name exists) - will likely never happen as admins only modify existing requests
-                if (!string.IsNullOrEmpty(data.adminName))
-                {
-                    SqlCommand adminUsers = new SqlCommand(@"SELECT id FROM sharepoint_users WHERE name = '" + data.adminName + "'", con);
-
-                    SqlDataReader adminUsersReader = adminUsers.ExecuteReader();
-
-                    int size = 0;
-
-                    while (adminUsersReader.Read())
-                    {
-                        userid = (int)adminUsersReader["id"];
-                        size++;
-
-                    }
-
-                    if (size < 1)
-                    {
-                        //need to create new admin user
-                        SqlCommand newAdminUser = new SqlCommand(@"INSERT INTO sharepoint_users (name) OUTPUT INSERTED.id VALUES (@name)", con);
-                        newAdminUser.Parameters.AddWithValue("@name", data.adminName);
-
-                        //retreive the userid
-                        userid = (int)newAdminUser.ExecuteScalar();
-                    }
-                }
-
-                SqlCommand newStatus = new SqlCommand(@"INSERT INTO request_status (requestid,userid,date,status) VALUES (@requestid,@userid,CURRENT_TIMESTAMP,@status)", con);
-                newStatus.Parameters.AddWithValue("@requestid", requestid);
-                newStatus.Parameters.AddWithValue("@userid", userid);
-                newStatus.Parameters.AddWithValue("@status", data.status ?? "Requested");
-
-
-                newStatus.ExecuteNonQuery();
-
-            }
-
-
-            //insert item if there is one
-            if (!string.IsNullOrEmpty(data.itemDescription))
-            {
-                SqlCommand descriptions = new SqlCommand(@"SELECT id FROM descriptions WHERE description = '" + data.itemDescription + "'", con);
-                descriptions.Parameters.AddWithValue("@description", data.itemDescription);
-                SqlDataReader descriptionsReader = descriptions.ExecuteReader();
-
-
-                int descriptionid = 6743;
-                int itemid = 7167;
-                try{
-                    descriptionsReader.Read();
-                
-                    descriptionid = (int)descriptionsReader["id"];
-
-                    SqlCommand items = new SqlCommand(@"SELECT id FROM items WHERE descriptionid = " + descriptionid, con);
-
-                    itemid = (int)items.ExecuteScalar();
-
-                }
-
-                catch
-                {
-                    //need to create new description
-                    SqlCommand newDescription = new SqlCommand(@"INSERT INTO descriptions (description) OUTPUT INSERTED.id VALUES (@description)", con);
-                    newDescription.Parameters.AddWithValue("@description", data.itemDescription);
-
-                    //retreive the descriptionid
-                    descriptionid = (int)newDescription.ExecuteScalar();
-
-                    //also need to create new item to hold the description
-
-
-                    SqlCommand newItem = new SqlCommand(@"INSERT INTO items (descriptionid,type,cas) OUTPUT INSERTED.id VALUES (@descriptionid, @type, @cas)", con);
-                    newItem.Parameters.AddWithValue("@descriptionid", descriptionid);
-                    newItem.Parameters.AddWithValue("@type", data.type ?? "Other");
-                    newItem.Parameters.AddWithValue("@cas", data.cas ?? "0");
-
-                    //retreive the itemid
-                    itemid = (int)newItem.ExecuteScalar();
-
-                }
-
-
-
-
-                SqlCommand newRequestItem = new SqlCommand(@"INSERT INTO request_items (requestid,itemid,quantity,quality,size,vertere) VALUES (@requestid,@itemid,@quantity,@quality, @size, @vertere)", con);
-                newRequestItem.Parameters.AddWithValue("@requestid", requestid);
-                newRequestItem.Parameters.AddWithValue("@itemid", itemid);
-                newRequestItem.Parameters.AddWithValue("@quantity", data.quantity);
-                newRequestItem.Parameters.AddWithValue("@quality", data.quality ?? "");
-                newRequestItem.Parameters.AddWithValue("@size", data.size ?? "");
-                newRequestItem.Parameters.AddWithValue("@vertere", data.vertere);
-
-
-
-                newRequestItem.ExecuteNonQuery();
-
-            }
-
-            //insert supplier if there is one
-            if (!string.IsNullOrEmpty(data.supplier))
-            {
-                SqlCommand suppliers = new SqlCommand(@"SELECT id FROM suppliers WHERE name = '" + data.supplier + "'", con);
-
-                SqlDataReader suppliersReader = suppliers.ExecuteReader();
-
-
-                int supplierid = 1;
-
-                try
-                {
-                    suppliersReader.Read();
-
-                    supplierid = (int)suppliersReader["id"];
-
-
-                }
-
-                catch
-                {
-                    //need to create new supplier
-                    SqlCommand newSupplier = new SqlCommand(@"INSERT INTO suppliers (name) OUTPUT INSERTED.id VALUES (@name)", con);
-                    newSupplier.Parameters.AddWithValue("@name", data.supplier);
-
-                    //retreive the supplierid
-                    supplierid = (int)newSupplier.ExecuteScalar();
-
-
-
-                }
-
-
-
-
-                SqlCommand newRequestSupplier = new SqlCommand(@"INSERT INTO request_suppliers (requestid,supplierid) VALUES (@requestid,@supplierid)", con);
-                newRequestSupplier.Parameters.AddWithValue("@requestid", requestid);
-                newRequestSupplier.Parameters.AddWithValue("@supplierid", supplierid);
-
-
-
-
-                newRequestSupplier.ExecuteNonQuery();
-
-            }
-
-
-
-            con.Close();
-
-
-
-
-
-
 
 
         }
@@ -860,473 +542,7 @@ namespace api.Controllers
         // PUT: api/Request/5
         public void Put(int id, [FromBody]Request data)
         {
-            Request request = this.Get(id);
-
-            string source = @"Data Source=TAYLOR-HP;Initial Catalog=ifs_new;Integrated Security=True;MultipleActiveResultSets=true";
-            SqlConnection con = new SqlConnection(source);
-            con.Open();
-
-
-            //check if user has changed
-            if (!(data.name.Equals(request.name, StringComparison.OrdinalIgnoreCase) && data.phone.Equals(request.phone, StringComparison.Ordinal) && data.email.Equals(request.email, StringComparison.Ordinal)))
-            {
-
-                //UPDATE/INSERT NEW USER
-
-                //check if user exists from the data given
-
-                Console.WriteLine(request.name);
-                SqlCommand users = new SqlCommand(@"SELECT id FROM sharepoint_users WHERE name = '" + data.name + "' AND email = '" + data.email + "' AND phone = '" + data.phone + "'", con);
-
-
-
-                SqlDataReader usersReader = users.ExecuteReader();
-
-
-                int userid = 436; //default empty user
-                try
-                {
-                    usersReader.Read();
-                    userid = (int)usersReader["id"];
-                }
-                catch
-                {
-                    //need to create new user
-                    SqlCommand newUser = new SqlCommand(@"INSERT INTO sharepoint_users (name,phone,email) OUTPUT INSERTED.id VALUES (@name, @phone, @email)", con);
-                    newUser.Parameters.AddWithValue("@name", data.name);
-                    newUser.Parameters.AddWithValue("@phone", data.phone);
-                    newUser.Parameters.AddWithValue("@email", data.email);
-
-                    //retreive the userid
-                    userid = (int)newUser.ExecuteScalar();
-                }
-
-                //perform update on main request
-                SqlCommand updateRequestUser = new SqlCommand(@"UPDATE requests SET userid = @userid WHERE id = @requestid", con);
-                updateRequestUser.Parameters.AddWithValue("@userid", userid);
-                updateRequestUser.Parameters.AddWithValue("@requestid", id);
-
-                updateRequestUser.ExecuteScalar();
-            }
-
-            //check if admin has changed
-            if (!(data.adminName.Equals(request.adminName, StringComparison.OrdinalIgnoreCase)))
-            {
-
-                //UPDATE/INSERT NEW USER
-
-                //check if user exists from the data given
-                SqlCommand adminUsers = new SqlCommand(@"SELECT id FROM sharepoint_users WHERE name = '" + data.adminName + "'", con);
-
-
-
-                SqlDataReader adminUsersReader = adminUsers.ExecuteReader();
-
-
-                int adminid = 436; //default empty user
-                try
-                {
-                    adminUsersReader.Read();
-                    adminid = (int)adminUsersReader["id"];
-                }
-                catch
-                {
-                    //need to create new user
-                    SqlCommand newAdminUser = new SqlCommand(@"INSERT INTO sharepoint_users (name) OUTPUT INSERTED.id VALUES (@name)", con);
-                    newAdminUser.Parameters.AddWithValue("@name", data.adminName);
-
-
-                    //retreive the userid
-                    adminid = (int)newAdminUser.ExecuteScalar();
-                }
-
-                //perform update on main request
-                SqlCommand updateRequestAdminUser = new SqlCommand(@"UPDATE requests SET adminid = @adminid WHERE id = @requestid", con);
-                updateRequestAdminUser.Parameters.AddWithValue("@adminid", adminid);
-                updateRequestAdminUser.Parameters.AddWithValue("@requestid", id);
-
-                updateRequestAdminUser.ExecuteScalar();
-            }
-
-
-            //check if room has changed 
-            if (!(data.destinationRoom.Equals(request.destinationRoom, StringComparison.OrdinalIgnoreCase)))
-            {
-                //UPDATE/INSERT NEW USER
-                //check if room exists
-                int roomid = 426; //default empty room
-                if (!string.IsNullOrEmpty(data.destinationRoom))
-                {
-
-
-                    SqlCommand rooms = new SqlCommand(@"SELECT id FROM rooms WHERE room = '" + data.destinationRoom + "'", con);
-                    rooms.Parameters.AddWithValue("@room", data.destinationRoom);
-
-                    SqlDataReader roomsReader = rooms.ExecuteReader();
-
-                    try
-                    {
-                        roomsReader.Read();
-
-                        roomid = (int)roomsReader["id"];
-
-
-                    }
-
-                    catch
-                    {
-                        //need to create new room
-                        SqlCommand newRoom = new SqlCommand(@"INSERT INTO rooms (room) OUTPUT INSERTED.id VALUES (@room)", con);
-                        newRoom.Parameters.AddWithValue("@room", data.destinationRoom);
-
-                        //retreive the roomid
-                        roomid = (int)newRoom.ExecuteScalar();
-                    }
-                }
-                //perform update on main request
-                SqlCommand updateRequestRoom = new SqlCommand(@"UPDATE requests SET roomid = @roomid WHERE id = @requestid", con);
-                updateRequestRoom.Parameters.AddWithValue("@roomid", roomid);
-                updateRequestRoom.Parameters.AddWithValue("@requestid", id);
-
-                updateRequestRoom.ExecuteScalar();
-            }
-
-
-            //check if account has changed
-
-            if (!(data.accountNumber.Equals(request.accountNumber, StringComparison.OrdinalIgnoreCase)))
-            {
-                //UPDATE/INSERT NEW ACCOUNT
-                //check if account exists
-                int accountid = 425; //default empty account
-                if (!string.IsNullOrEmpty(data.accountNumber))
-                {
-                    SqlCommand accounts = new SqlCommand(@"SELECT id FROM accounts WHERE number = '" + data.accountNumber + "'", con);
-
-                    //throw new Exception(@"SELECT id FROM accounts WHERE number = '" + data.accountNumber + "'");
-                    SqlDataReader accountsReader = accounts.ExecuteReader();
-
-
-
-                    try
-                    {
-
-                        accountsReader.Read();
-
-                        accountid = (int)accountsReader["id"];
-
-
-                    }
-
-                    catch
-                    {
-                        //need to create new account
-                        SqlCommand newAccount = new SqlCommand(@"INSERT INTO accounts (number) OUTPUT INSERTED.id VALUES (@number)", con);
-                        newAccount.Parameters.AddWithValue("@number", data.accountNumber);
-
-                        //retreive the accountid
-                        accountid = (int)newAccount.ExecuteScalar();
-                    }
-                }
-                //perform update on main request
-                SqlCommand updateRequestAccount = new SqlCommand(@"UPDATE requests SET accountid = @accountid WHERE id = @requestid", con);
-                updateRequestAccount.Parameters.AddWithValue("@accountid", accountid);
-                updateRequestAccount.Parameters.AddWithValue("@requestid", id);
-
-                updateRequestAccount.ExecuteScalar();
-            }
-
-            //check if analysis code has changed
-
-            if (!(data.analysisCode.Equals(request.analysisCode, StringComparison.OrdinalIgnoreCase)))
-            {
-                //check if analysis code exists
-                int codeid = 1; //default empty analysis code
-                if (!string.IsNullOrEmpty(data.analysisCode))
-                {
-                    SqlCommand analysisCodes = new SqlCommand(@"SELECT id FROM analysis_codes WHERE code = '" + data.analysisCode + "'", con);
-                    SqlDataReader analysisCodesReader = analysisCodes.ExecuteReader();
-
-                    try
-                    {
-                        analysisCodesReader.Read();
-
-                        codeid = (int)analysisCodesReader["id"];
-
-
-                    }
-
-                    catch
-                    {
-                        //need to create new code
-                        SqlCommand newAnalysisCode = new SqlCommand(@"INSERT INTO analysis_codes (code) OUTPUT INSERTED.id VALUES (@code)", con);
-                        newAnalysisCode.Parameters.AddWithValue("@code", data.analysisCode ?? "");
-
-                        //retreive the accountid
-                        codeid = (int)newAnalysisCode.ExecuteScalar();
-                    }
-
-                }
-                //perform update on main request
-                SqlCommand updateRequestCode = new SqlCommand(@"UPDATE requests SET codeid = @codeid WHERE id = @requestid", con);
-                updateRequestCode.Parameters.AddWithValue("@codeid", codeid);
-                updateRequestCode.Parameters.AddWithValue("@requestid", id);
-
-                updateRequestCode.ExecuteScalar();
-            }
-
-
-            //check if admin notes have changed
-
-            if (!(data.adminNotes.Equals(request.adminNotes, StringComparison.OrdinalIgnoreCase)))
-            {
-                //insert admin notes if there are any
-                if (string.IsNullOrEmpty(request.adminNotes))
-                {
-                    SqlCommand newAdminNote = new SqlCommand(@"INSERT INTO request_admin_notes (requestid,note) VALUES (@requestid,@note)", con);
-                    newAdminNote.Parameters.AddWithValue("@requestid", id);
-                    newAdminNote.Parameters.AddWithValue("@note", data.adminNotes);
-
-                    newAdminNote.ExecuteNonQuery();
-
-                }
-                else
-                {
-                    //is update existing admin note
-                    SqlCommand updateAdminNote = new SqlCommand(@"UPDATE request_admin_notes SET note = @note WHERE requestid = @requestid", con);
-                    updateAdminNote.Parameters.AddWithValue("@requestid", id);
-                    updateAdminNote.Parameters.AddWithValue("@note", data.adminNotes);
-
-                    updateAdminNote.ExecuteNonQuery();
-                }
-            }
-
-
-            //check if payment has changed
-            if (!(data.paymentType.Equals(request.paymentType, StringComparison.OrdinalIgnoreCase) && data.cost == request.cost && data.pnNumber.Equals(request.pnNumber, StringComparison.OrdinalIgnoreCase) && data.invoiceDetails.Equals(request.invoiceDetails, StringComparison.OrdinalIgnoreCase)))
-            {
-                //insert payment if there is one
-                if (string.IsNullOrEmpty(request.paymentType))
-                {
-                    SqlCommand newPayment = new SqlCommand(@"INSERT INTO request_payments (requestid,type,cost,pnnumber,invoice) VALUES (@requestid,@type,@cost,@pnnumber,@invoice)", con);
-                    newPayment.Parameters.AddWithValue("@requestid", id);
-                    newPayment.Parameters.AddWithValue("@type", data.paymentType ?? "internal");
-                    newPayment.Parameters.AddWithValue("@cost", data.cost);
-                    newPayment.Parameters.AddWithValue("@pnnumber", data.pnNumber ?? "");
-                    newPayment.Parameters.AddWithValue("@invoice", data.invoiceDetails ?? "");
-
-                    newPayment.ExecuteNonQuery();
-
-                }
-                else
-                {
-                    //is an update to existing payment
-                    SqlCommand updatePayment = new SqlCommand(@"UPDATE request_payments SET type = @type,cost = @cost,pnnumber = @pnnumber,invoice = @invoice WHERE id = @requestid", con);
-                    updatePayment.Parameters.AddWithValue("@requestid", id);
-                    updatePayment.Parameters.AddWithValue("@type", data.paymentType ?? "internal");
-                    updatePayment.Parameters.AddWithValue("@cost", data.cost);
-                    updatePayment.Parameters.AddWithValue("@pnnumber", data.pnNumber ?? "");
-                    updatePayment.Parameters.AddWithValue("@invoice", data.invoiceDetails ?? "");
-
-                    updatePayment.ExecuteNonQuery();
-
-                }
-            }
-
-
-
-            //check if permit has changed
-            if (!(data.permitNumber.Equals(request.permitNumber, StringComparison.OrdinalIgnoreCase)))
-            {
-                //insert permits if there is one
-                if (!request.permit)
-                {
-                    SqlCommand newPermit = new SqlCommand(@"INSERT INTO request_permits (requestid,number) VALUES (@requestid,@number)", con);
-                    newPermit.Parameters.AddWithValue("@requestid",  id);
-                    newPermit.Parameters.AddWithValue("@number", data.permitNumber);
-
-
-                    newPermit.ExecuteNonQuery();
-
-                }
-                else
-                {
-                    SqlCommand updatePermit = new SqlCommand(@"UPDATE request_permits SET  number = @number WHERE requestid = @requestid", con);
-                    updatePermit.Parameters.AddWithValue("@requestid", id);
-                    updatePermit.Parameters.AddWithValue("@number", data.permitNumber);
-
-
-                    updatePermit.ExecuteNonQuery();
-                }
-
-            }
-
-            //check if status is the same or not
-            if (!(data.status.Equals(request.status, StringComparison.OrdinalIgnoreCase)))
-            {
-                //insert status if there is one (there always will be at least 1)
-                if (!string.IsNullOrEmpty(data.status))
-                {
-                    //check if admin changed the status (ie admin name exists)
-                    int userid = 436;
-                    if (!string.IsNullOrEmpty(data.adminName))
-                    {
-                        SqlCommand adminUsers = new SqlCommand(@"SELECT id FROM sharepoint_users WHERE name = '" + data.adminName + "'", con);
-
-                        SqlDataReader adminUsersReader = adminUsers.ExecuteReader();
-
-                        int size = 0;
-                        
-                        while (adminUsersReader.Read())
-                        {
-                            userid = (int)adminUsersReader["id"];
-                            size++;
-
-                        }
-
-                        if (size < 1)
-                        {
-                            //need to create new admin user
-                            SqlCommand newAdminUser = new SqlCommand(@"INSERT INTO sharepoint_users (name) OUTPUT INSERTED.id VALUES (@name)", con);
-                            newAdminUser.Parameters.AddWithValue("@name", data.adminName);
-
-                            //retreive the userid
-                            userid = (int)newAdminUser.ExecuteScalar();
-                        }
-                    }
-
-                    SqlCommand newStatus = new SqlCommand(@"INSERT INTO request_status (requestid,userid,date,status) VALUES (@requestid,@userid,CURRENT_TIMESTAMP,@status)", con);
-                    newStatus.Parameters.AddWithValue("@requestid", id);
-                    newStatus.Parameters.AddWithValue("@userid", userid);
-                    newStatus.Parameters.AddWithValue("@status", data.status ?? "Requested");
-
-
-                    newStatus.ExecuteNonQuery();
-
-                }
-            }
-
-            //check if item has changed
-            if (!(data.itemDescription.Equals(request.itemDescription, StringComparison.OrdinalIgnoreCase)))
-            {
-                //insert item if there is one
-                if (!string.IsNullOrEmpty(data.itemDescription))
-                {
-                    SqlCommand descriptions = new SqlCommand(@"SELECT id FROM descriptions WHERE description = '" + data.itemDescription + "'", con);
-                    descriptions.Parameters.AddWithValue("@description", data.itemDescription);
-                    SqlDataReader descriptionsReader = descriptions.ExecuteReader();
-
-
-                    int descriptionid = 6743;
-                    int itemid = 7167;
-                    try
-                    {
-                        descriptionsReader.Read();
-
-                        descriptionid = (int)descriptionsReader["id"];
-
-                        SqlCommand items = new SqlCommand(@"SELECT id FROM items WHERE descriptionid = " + descriptionid, con);
-
-                        itemid = (int)items.ExecuteScalar();
-
-                    }
-
-                    catch
-                    {
-                        //need to create new description
-                        SqlCommand newDescription = new SqlCommand(@"INSERT INTO descriptions (description) OUTPUT INSERTED.id VALUES (@description)", con);
-                        newDescription.Parameters.AddWithValue("@description", data.itemDescription);
-
-                        //retreive the descriptionid
-                        descriptionid = (int)newDescription.ExecuteScalar();
-
-                        //also need to create new item to hold the description
-
-
-                        SqlCommand newItem = new SqlCommand(@"INSERT INTO items (descriptionid,type,cas) OUTPUT INSERTED.id VALUES (@descriptionid, @type, @cas)", con);
-                        newItem.Parameters.AddWithValue("@descriptionid", descriptionid);
-                        newItem.Parameters.AddWithValue("@type", data.type ?? "Other");
-                        newItem.Parameters.AddWithValue("@cas", data.cas ?? "0");
-
-                        //retreive the itemid
-                        itemid = (int)newItem.ExecuteScalar();
-
-                    }
-
-
-
-
-                    SqlCommand updateRequestItem = new SqlCommand(@"UPDATE request_items SET requestid = @requestid, itemid = @itemid, quantity = @quantity, quality = @quality, size = @size, vertere  =@vertere WHERE requestid = @requestid", con);
-                    updateRequestItem.Parameters.AddWithValue("@requestid", id);
-                    updateRequestItem.Parameters.AddWithValue("@itemid", itemid);
-                    updateRequestItem.Parameters.AddWithValue("@quantity", data.quantity);
-                    updateRequestItem.Parameters.AddWithValue("@quality", data.quality ?? "");
-                    updateRequestItem.Parameters.AddWithValue("@size", data.size ?? "");
-                    updateRequestItem.Parameters.AddWithValue("@vertere", data.vertere);
-
-
-
-                    updateRequestItem.ExecuteNonQuery();
-
-                }
-            }
-
-
-            //check if supplier has changed
-            if (!(data.supplier.Equals(request.supplier, StringComparison.OrdinalIgnoreCase)))
-            {
-
-            //insert supplier if there is one
-                if (!string.IsNullOrEmpty(data.supplier))
-                {
-                    SqlCommand suppliers = new SqlCommand(@"SELECT id FROM suppliers WHERE name = '" + data.supplier + "'", con);
-
-                    SqlDataReader suppliersReader = suppliers.ExecuteReader();
-
-
-                    int supplierid = 1;
-
-                    try
-                    {
-                        suppliersReader.Read();
-
-                        supplierid = (int)suppliersReader["id"];
-
-
-                    }
-
-                    catch
-                    {
-                        //need to create new supplier
-                        SqlCommand newSupplier = new SqlCommand(@"INSERT INTO suppliers (name) OUTPUT INSERTED.id VALUES (@name)", con);
-                        newSupplier.Parameters.AddWithValue("@name", data.supplier);
-
-                        //retreive the supplierid
-                        supplierid = (int)newSupplier.ExecuteScalar();
-
-
-
-                    }
-
-
-
-
-
-                    SqlCommand newRequestSupplier = new SqlCommand(@"UPDATE request_suppliers SET supplierid = @supplierid WHERE requestid = @requestid", con);
-                    newRequestSupplier.Parameters.AddWithValue("@requestid", id);
-                    newRequestSupplier.Parameters.AddWithValue("@supplierid", supplierid);
-
-
-
-
-                    newRequestSupplier.ExecuteNonQuery();
-                }
-
-            }
-
-
-
-            con.Close();
+            
 
 
 
@@ -1336,15 +552,20 @@ namespace api.Controllers
         // DELETE: api/Request/5
         public void Delete(int id)
         {
-
-            string source = @"Data Source=TAYLOR-HP;Initial Catalog=ifs_new;Integrated Security=True;MultipleActiveResultSets=true";
-            SqlConnection con = new SqlConnection(source);
-            con.Open();
-            //will also remove all associated items with this request
-            SqlCommand deleteRequest = new SqlCommand(@"DELETE FROM requests WHERE id = @requestid", con);
-            deleteRequest.Parameters.AddWithValue("@requestid", id);
-
-            deleteRequest.ExecuteNonQuery();
+            using (var db = new EModelsContext())
+            {
+                var eRequest = db.requests.Where(req => req.id.Equals(id)).SingleOrDefault();
+                if (eRequest != null)
+                {
+                    db.requests.Remove(eRequest);
+                    db.SaveChanges();
+                }
+            }
         }
+
+
+
+
+
     }
 }

@@ -7,6 +7,10 @@ namespace api.Models
 {
     public class RequestPaginate
     {
+        public RequestPaginate()
+        {
+            this.items = new List<Request>();
+        }
         public int count { get; set; }
         public List<Request> items { get; set; }
 

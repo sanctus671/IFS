@@ -2,7 +2,7 @@
 app.controller('MainController', function ($scope, $rootScope, requestsService,$location) {
 
     
-    init();
+    
 
     function init() {
         
@@ -29,7 +29,8 @@ app.controller('MainController', function ($scope, $rootScope, requestsService,$
         $scope.currentPage = 1;
         $scope.pageSize = 10;  
         $scope.totalRequests = 0;
-        getPaginatedRequests();
+        $scope.searchString = "";
+        $scope.getPaginatedRequests();
         $scope.pagination = {
             current: 1
         };        
@@ -54,7 +55,7 @@ app.controller('MainController', function ($scope, $rootScope, requestsService,$
     
     $scope.pageChanged = function(newPage) {
         $scope.currentPage = newPage;
-        getPaginatedRequests();
+        $scope.getPaginatedRequests();
     };
     
     $scope.changePageSize = function (size) {
@@ -64,12 +65,13 @@ app.controller('MainController', function ($scope, $rootScope, requestsService,$
 
     };
     
-    function getPaginatedRequests() {     
+    $scope.getPaginatedRequests = function () {
         var promise = requestsService.getRequests($scope.pageSize * ($scope.currentPage -1), $scope.pageSize);
         setTimeout(function(){        
         promise.then(function(data){
             $scope.requests = data.items;
             $scope.totalRequests = data.count;
+            $rootScope.$broadcast('requestsChanged',data.items);
         }); 
         },250);           
     }
@@ -94,17 +96,42 @@ app.controller('MainController', function ($scope, $rootScope, requestsService,$
     };
     
   $scope.filterRequests = function(field,options1,options2,value,date1,date2){
-        if (options1){
-            requestsService.filterRequests(field, options1, value, date1, date2);
-        }
-        else{
-            requestsService.filterRequests(field, options2, value, date1, date2);
-        }
+        var promise = requestsService.filterRequests(field, options1 ? options1 : options2, value, date1, date2,$scope.searchString,$scope.pageSize * ($scope.currentPage -1), $scope.pageSize);
+        setTimeout(function(){        
+        promise.then(function(data){
+            $scope.requests = data.items;
+            $scope.totalRequests = data.count;
+            $rootScope.$broadcast('requestsChanged',data.items);
+        }); 
+        },250); 
   };
+  
+  $scope.searchRequests = function(){
+        var promise = requestsService.searchRequests($scope.searchString,$scope.pageSize * ($scope.currentPage -1), $scope.pageSize);
+        
+        promise.then(function(data){
+            $scope.requests = data.items;
+            $scope.totalRequests = data.count;
+            $rootScope.$broadcast('requestsChanged',data.items);
+        
+        }); 
+  }; 
+  
+  $scope.resetRequests = function(){
+        $scope.currentPage = 1;
+        $scope.pageSize = 10;  
+        $scope.totalRequests = 0;
+        $scope.searchString = "";      
+        requestsService.resetRequests();
+        $scope.getPaginatedRequests();
+        
+  };  
   
   $rootScope.$on('requestsChanged', function (event, data){
       $scope.requests = data;
   });
+  
+  init();
              
 });
 
@@ -154,7 +181,6 @@ app.controller('MainViewController', function ($scope, $rootScope, $routeParams,
     }
     
     $rootScope.$on('requestsChanged', function (event, data){
-        console.log("here");
         for (var i = 0; i < data.length; i++) {
             if (data[i].id === $scope.requestID) {
                 $scope.request = data[i];
@@ -793,7 +819,7 @@ app.controller('ModalInstanceCtrl', function ($scope, $rootScope, $modalInstance
 
 
 
-app.controller('SupplierController', function ($scope, requestsService,$location) {
+app.controller('SupplierController', function ($scope, $rootScope, requestsService,$location) {
  
     init();
     
@@ -811,8 +837,10 @@ app.controller('SupplierController', function ($scope, requestsService,$location
         },250);
 
         
-     $scope.$on('suppliersChanged', function(event, args) {
-        $scope.suppliers = args;
+     $rootScope.$on('suppliersChanged', function(event, data) {
+         console.log(data);
+        $scope.suppliers = data;
+                
     });  
       
     }
@@ -872,7 +900,7 @@ app.controller('SupplierViewController', function ($scope, $routeParams, request
 
 
 
-app.controller('CodeController', function ($scope, requestsService,$location) {
+app.controller('CodeController', function ($scope, $rootScope, requestsService,$location) {
     
 
     init();
@@ -892,7 +920,8 @@ app.controller('CodeController', function ($scope, requestsService,$location) {
         });
         },250);        
         
-     $scope.$on('codesChanged', function(event, args) {
+     $rootScope.$on('codesChanged', function(event, args) {
+         console.log("herecode");
         $scope.codes = args;
     });         
 

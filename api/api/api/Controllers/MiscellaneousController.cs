@@ -7,6 +7,8 @@ using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using System.Web.Http.Cors;
+using api.EModels;
+
 
 namespace api.Controllers
 {
@@ -17,42 +19,41 @@ namespace api.Controllers
         public IEnumerable<KeyValuePair<string, string>> Get()
         {
 
-            string source = @"Data Source=TAYLOR-HP;Initial Catalog=ifs_new;Integrated Security=True;MultipleActiveResultSets=true";
-            SqlConnection con = new SqlConnection(source);
-            con.Open();
-
-            SqlCommand tooltips = new SqlCommand("SELECT * FROM tooltips", con);
-            tooltips.CommandTimeout = 0;
-            SqlDataReader tooltipsReader = tooltips.ExecuteReader();
-
-            Dictionary<string,string> dictionary = new Dictionary<string,string>();
-
-            while (tooltipsReader.Read())
+            Dictionary<string, string> dictionary = new Dictionary<string, string>();
+            using (var db = new EModelsContext())
             {
-                string field = (string)tooltipsReader["field"];
-                string data = (string)tooltipsReader["tooltip"];
-                dictionary.Add(field, data);
+                var result = db.tooltips.ToList();
 
+                foreach (var eTooltip in result)
+                {
+                    string field = eTooltip.field;
+                    string data = eTooltip.tooltip1;
+                    dictionary.Add(field, data);
 
+                }
             }
 
             return dictionary;
+
         }
+
+
 
         // GET: api/Miscellaneous/GL11223213
         public bool Get(string account)
         {
-            //checks account number is valid
-            string source = @"Data Source=TAYLOR-HP;Initial Catalog=ifs_new;Integrated Security=True;MultipleActiveResultSets=true";
-            SqlConnection con = new SqlConnection(source);
-            con.Open();
 
-            SqlCommand check = new SqlCommand("SELECT count(1) FROM accounts WHERE number = '" + account + "'", con);
+            using (var db = new EModelsContext())
+            {
+                var count = db.accounts.Where(acc => acc.number.Equals(account)).Count();
+                if (count > 0)
+                {
+                    return true;
+                }
 
-            return (bool)check.ExecuteScalar();
+            }
 
+            return false;
         }
-
-
     }
 }

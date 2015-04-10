@@ -17,7 +17,8 @@ var codes = [];
 var rooms = [];
 var tooltips = [];
 
-
+var filterString = "";
+var searchString = "";
 
     
 /* USER FUNCTIONS */         
@@ -124,7 +125,10 @@ var tooltips = [];
     };
     
     this.insertAnalysisCode = function(data){
-        var topID = analysisCodes.length + 1;
+        var topID = 1;
+        if (analysisCodes.length > 0){
+            topID = analysisCodes[0].id + 1;
+        }
         data["id"] = topID;
         
         $http.post(url + "AnalysisCode", data).then(function(){
@@ -197,7 +201,10 @@ var tooltips = [];
     
     
     this.insertSupplier = function(data){
-        var topID = suppliers[suppliers.length - 1].id + 1;
+        var topID = 1;
+        if (suppliers.length > 0){
+            topID = suppliers[0].id + 1;
+        }
         
         data["id"] = topID;
         $http.post(url + "Supplier", data).then(function(){
@@ -241,7 +248,19 @@ var tooltips = [];
         var requestsDefer = $q.defer();
         if (user.permissions === "admin" || user.permissions === "accountant"){
             //get all requests
-            $http.get(url + "Request?offset=" + offset + "&limit=" + limit).then(function(response){
+
+            var urlString = url + "Request?offset=" + offset + "&limit=" + limit;
+            if (searchString !== "" && filterString !== ""){
+                urlString = urlString + "&search=" + searchString + "&filterString=" + filterString;    
+            }
+            else if (searchString !== ""){
+                urlString = urlString + "&search=" + searchString;  
+            }  
+            else if(filterString !== ""){
+                urlString = urlString + "&filterString=" + filterString;  
+            }
+            
+            $http.get(urlString).then(function(response){
                 requestsDefer.resolve(response.data);
             });            
             var  promise = requestsDefer.promise;
@@ -253,19 +272,11 @@ var tooltips = [];
         }
         //TODO    
         else if (user.permissions === "manager"){
-            //get requests under this accountant or manaer
-            var users = [];
-            for (var i = 0; i < userGroups.length; i++) {
-                if (userGroups[i].id === user.groupid) {
-                    users = userGroups[i].users;
-                }
-            }
-            
-            requests = requests.filter(function(x){return users.indexOf(x.userid) > -1});
+            //TODO: get requests for users who are managed by this person
             return requests;
         }
-        //otherwise just get the requests for this user
-        //requests = requests.filter(function(x){return x.userid === user.id;});
+        
+        //TODO: get requests for only that user
         return requests;
     };
     
@@ -273,6 +284,7 @@ var tooltips = [];
 
     this.insertRequest = function (data) {
         requestsLength += 1;
+        
         var topID = requestsLength;
         data["id"] = topID;
         data["status"] = "Requested";
@@ -309,7 +321,6 @@ var tooltips = [];
 
             }
         }
-        console.log(data);
         $http.put(url + "Request/" + id, data);
         return requests;        
 
@@ -324,7 +335,7 @@ var tooltips = [];
             }
         }
         $http.delete(url + "Request/" + id);
-        return requests
+        return requests;
     };
 
     this.getRequest = function (id) {
@@ -351,37 +362,83 @@ var tooltips = [];
         return promise;
     };
     
-    this.filterRequests = function (field, option, value, date1, date2){
+    this.filterRequests = function (field, option, value, date1, date2, searchText, offset, limit){
+        //check the search form matches what we have already saved from previous search
+        if (searchText !== searchString){
+            //change it if it isn't
+            searchString = searchText;
+        }
         
-        for (var index = requests.length; index--;){
-            if(option === "contain" && requests[index][field] && requests[index][field].indexOf(value) === -1){
-                requests[index]["filtered"] = 1;
-            }
-            else if (option === "notcontain" && requests[index][field] && requests[index][field].indexOf(value) > -1){
-                
-                requests[index]["filtered"] = 1;
-            }
-            else if(option === "after" && requests[index][field] && requests[index][field] < new Date(date1)){
-                requests[index]["filtered"] = 1;
-            }
-            else if(option === "before" && requests[index][field] && requests[index][field] > new Date(date1)){
-                requests[index]["filtered"] = 1;
-            }            
-            else if(option === "notbetween" && requests[index][field] && requests[index][field] > new Date(date1) && requests[index][field] < new Date(date2)){
-                requests[index]["filtered"] = 1;
-            } 
-            else if(option === "between" && requests[index][field] && (requests[index][field] < new Date(date1) || requests[index][field] > new Date(date2))){
-                requests[index]["filtered"] = 1;
-            } 
-            else{
-                requests[index]["filtered"] = 0;
-            }
+        //build filter string for api
+        filterString = field + ";" + option + ";";
+        
+        if(option === "after" || option === "before"){
+            filterString = filterString + date1;
+        }
+        else if (option === "between" || option === "notbetween"){
+            filterString = filterString + date1 + ";" + date2;
+        }
+        else{
+            filterString = filterString + value;
+        }
             
-            
+        //make request to get new set of requests
+        var requestsDefer = $q.defer();
+        
+        var urlString = url + "Request?offset=" + offset + "&limit=" + limit;
+        if (searchString !== ""){
+            urlString = urlString + "&search=" + searchString + "&filterString=" + filterString;    
+        }
+        else{
+            urlString = urlString + "&filterString=" + filterString;  
+        }
+        
+        
+        $http.get(urlString).then(function(response){
+            requestsDefer.resolve(response.data);
+        });            
+        var  promise = requestsDefer.promise;
+        promise.then(function(data){
+            requestsLength = data.count;
+            requests = data.items;
+        });            
+        return promise;       
+
+    };
+
+    this.searchRequests = function (search, offset, limit){
+
+        searchString = search;
+        
+        var requestsDefer = $q.defer();
+        
+        var urlString = url + "Request?offset=" + offset + "&limit=" + limit;
+        if (filterString !== ""){
+            urlString = urlString + "&search=" + searchString + "&filterString=" + filterString;    
+        }
+        else{
+            urlString = urlString + "&search=" + searchString;  
         }
         
 
-    };
+        $http.get(urlString).then(function(response){
+            requestsDefer.resolve(response.data);
+        });            
+        var  promise = requestsDefer.promise;
+        promise.then(function(data){
+            requestsLength = data.count;
+            requests = data.items;
+        });            
+        return promise;        
+
+    };    
+
+    this.resetRequests = function (){
+
+        searchString = "";
+        filterString= "";
+ 
+    };     
     
 /* END REQUESTS FUNCTIONS */     
     

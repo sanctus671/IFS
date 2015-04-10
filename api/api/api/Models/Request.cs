@@ -35,5 +35,38 @@ namespace api.Models
         public string paymentType { get; set; }
         public string pnNumber { get; set; }
         public string invoiceDetails { get; set; }
+
+
+        public override string ToString(){
+
+            return "id: " + id + "\n" 
+            + "status: " + status + "\n"
+            + "date: " + date.ToString() + "\n"
+            +"name: " + name + "\n"
+            +"phone: " + phone + "\n"
+            +"email: " + email + "\n"
+            +"type: " + type + "\n"
+            +"room: " + destinationRoom + "\n"
+            +"description: " + itemDescription + "\n"
+            +"quality: " + quality + "\n"
+            +"size: " + size + "\n"
+            +"quantity: " + quantity + "\n"
+            +"vertere: " + vertere + "\n"
+            +"notes: " + notes + "\n"
+            +"cas: " + cas + "\n"
+            +"accountNumber: " + accountNumber + "\n"
+            +"supplier: " + supplier + "\n"
+            + "dateSupplied: " + dateSupplied + "\n"
+            + "adminname: " + adminName + "\n"
+            + "analysis code: " + analysisCode + "\n"
+            + "permitnumber: " + permitNumber + "\n"
+            + "payment type: " + paymentType + "\n"
+            + "pnnumber: " + pnNumber+ "\n"
+            + "invoice details: " + invoiceDetails + "\n";
+        }
     }
+
+
+
+    
 }

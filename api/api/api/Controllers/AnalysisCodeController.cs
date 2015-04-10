@@ -7,6 +7,7 @@ using System.Web.Http;
 using api.Models;
 using System.Data.SqlClient;
 using System.Web.Http.Cors;
+using api.EModels;
 
 namespace api.Controllers
 {
@@ -16,28 +17,24 @@ namespace api.Controllers
         // GET: api/AnalysisCode
         public IEnumerable<AnalysisCode> Get()
         {
-            string source = @"Data Source=TAYLOR-HP;Initial Catalog=ifs_new;Integrated Security=True;MultipleActiveResultSets=true";
-            SqlConnection con = new SqlConnection(source);
-            con.Open();
-
-            SqlCommand codes = new SqlCommand("SELECT * FROM analysis_codes", con);
-            codes.CommandTimeout = 0;
-            SqlDataReader codesReader = codes.ExecuteReader();
-
-            List<AnalysisCode> items = new List<AnalysisCode>();
-            while (codesReader.Read())
+            List<AnalysisCode> returnAnalysisCodes = new List<AnalysisCode>();
+            using (var db = new EModelsContext())
             {
-                AnalysisCode data = new AnalysisCode();
+                var result = db.analysis_codes.OrderByDescending(ac => ac.id).ToList();
 
+                foreach (var eAnalysisCode in result)
+                {
 
-                //fill in what we have from initial SQL call
-                data.id = (int)codesReader["id"];
-                data.code = (string)codesReader["code"];
+                    AnalysisCode returnAnalysisCode = new AnalysisCode();
+                    returnAnalysisCode.id = eAnalysisCode.id;
+                    returnAnalysisCode.code = eAnalysisCode.code;
 
-                items.Add(data);
+                    returnAnalysisCodes.Add(returnAnalysisCode);
+                }
+
             }
 
-            return items;
+            return returnAnalysisCodes;
 
 
         }
@@ -45,64 +42,59 @@ namespace api.Controllers
         // GET: api/AnalysisCode/5
         public AnalysisCode Get(int id)
         {
-            string source = @"Data Source=TAYLOR-HP;Initial Catalog=ifs_new;Integrated Security=True;MultipleActiveResultSets=true";
-            SqlConnection con = new SqlConnection(source);
-            con.Open();
-
-            SqlCommand codes = new SqlCommand("SELECT * FROM analysis_codes WHERE id = " + id, con);
-            codes.CommandTimeout = 0;
-            SqlDataReader codesReader = codes.ExecuteReader();
-
-            AnalysisCode item = new AnalysisCode();
-            while (codesReader.Read())
+            AnalysisCode returnAnalysisCode = new AnalysisCode();
+            using (var db = new EModelsContext())
             {
+                var eAnalysisCode = db.analysis_codes.Where(ac => ac.id.Equals(id)).Single();
 
-                //fill in what we have from initial SQL call
-                item.id = (int)codesReader["id"];
-                item.code = (string)codesReader["code"];
+                returnAnalysisCode.id = eAnalysisCode.id;
+                returnAnalysisCode.code = eAnalysisCode.code;
+
             }
+            return returnAnalysisCode;
 
-            return item;
         }
 
         // POST: api/AnalysisCode
         public void Post([FromBody]AnalysisCode data)
         {
-            string source = @"Data Source=TAYLOR-HP;Initial Catalog=ifs_new;Integrated Security=True;MultipleActiveResultSets=true";
-            SqlConnection con = new SqlConnection(source);
-            con.Open();
-
-            SqlCommand newCode = new SqlCommand(@"INSERT INTO analysis_codes (code) VALUES (@code)", con);
-            newCode.Parameters.AddWithValue("@code", data.code);
-
-            newCode.ExecuteScalar();
+            using (var db = new EModelsContext())
+            {
+                analysis_codes analysisCode = new analysis_codes
+                {
+                    code = data.code
+                };
+                db.analysis_codes.Add(analysisCode);
+                db.SaveChanges();
+            }
         }
 
         // PUT: api/AnalysisCode/5
         public void Put(int id, [FromBody]AnalysisCode data)
         {
-            string source = @"Data Source=TAYLOR-HP;Initial Catalog=ifs_new;Integrated Security=True;MultipleActiveResultSets=true";
-            SqlConnection con = new SqlConnection(source);
-            con.Open();
-
-            SqlCommand updateCode = new SqlCommand(@"UPDATE analysis_codes SET code = @code WHERE id = @id", con);
-            updateCode.Parameters.AddWithValue("@code", data.code);
-            updateCode.Parameters.AddWithValue("@id", data.id);
-
-            updateCode.ExecuteScalar();
+            using (var db = new EModelsContext())
+            {
+                var eAnalysisCode = db.analysis_codes.Where(ac => ac.id.Equals(id)).SingleOrDefault();
+                if (eAnalysisCode != null)
+                {
+                    eAnalysisCode.code = data.code;
+                    db.SaveChanges();
+                }
+            }
         }
 
         // DELETE: api/AnalysisCode/5
         public void Delete(int id)
         {
-            string source = @"Data Source=TAYLOR-HP;Initial Catalog=ifs_new;Integrated Security=True;MultipleActiveResultSets=true";
-            SqlConnection con = new SqlConnection(source);
-            con.Open();
-
-            SqlCommand deleteCode = new SqlCommand(@"DELETE FROM analysis_codes WHERE id = @id", con);
-            deleteCode.Parameters.AddWithValue("@id", id);
-
-            deleteCode.ExecuteScalar();
+            using (var db = new EModelsContext())
+            {
+                var eAnalysisCode = db.analysis_codes.Where(ac => ac.id.Equals(id)).SingleOrDefault();
+                if (eAnalysisCode != null)
+                {
+                    db.analysis_codes.Remove(eAnalysisCode);
+                    db.SaveChanges();
+                }
+            }
         }
     }
 }

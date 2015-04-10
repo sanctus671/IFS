@@ -168,7 +168,6 @@
     <Compile Include="Controllers\MiscellaneousController.cs" />
     <Compile Include="Controllers\RequestController.cs" />
     <Compile Include="Controllers\SupplierController.cs" />
-    <Compile Include="Controllers\ValuesController.cs" />
     <Compile Include="EModels\account.cs" />
     <Compile Include="EModels\analysis_codes.cs" />
     <Compile Include="EModels\description.cs" />
@@ -190,6 +189,7 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\AnalysisCode.cs" />
+    <Compile Include="Models\Filter.cs" />
     <Compile Include="Models\RequestPaginate.cs" />
     <Compile Include="Models\Status.cs" />
     <Compile Include="Models\Request.cs" />

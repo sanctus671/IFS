@@ -7,6 +7,7 @@ using System.Web.Http;
 using api.Models;
 using System.Data.SqlClient;
 using System.Web.Http.Cors;
+using api.EModels;
 
 namespace api.Controllers
 {
@@ -17,91 +18,80 @@ namespace api.Controllers
         public IEnumerable<Supplier> Get()
         {
 
-            string source = @"Data Source=TAYLOR-HP;Initial Catalog=ifs_new;Integrated Security=True;MultipleActiveResultSets=true";
-            SqlConnection con = new SqlConnection(source);
-            con.Open();
-
-            SqlCommand suppliers = new SqlCommand("SELECT * FROM suppliers ORDER BY id", con);
-            suppliers.CommandTimeout = 0;
-            SqlDataReader suppliersReader = suppliers.ExecuteReader();
-
-            List<Supplier> items = new List<Supplier>();
-            while (suppliersReader.Read())
+            List<Supplier> returnSuppliers = new List<Supplier>();
+            using (var db = new EModelsContext())
             {
-                Supplier data = new Supplier();
+                var result = db.suppliers.OrderByDescending(req => req.id).ToList();
 
+                foreach (var eSupplier in result)
+                {
+                    Supplier returnSupplier = new Supplier();
+                    returnSupplier.id = eSupplier.id;
+                    returnSupplier.name = eSupplier.name;
 
-                //fill in what we have from initial SQL call
-                data.id = (int)suppliersReader["id"];
-                data.name = (string)suppliersReader["name"];
+                    returnSuppliers.Add(returnSupplier);
+                }
 
-                items.Add(data);
             }
 
-            return items;
+            return returnSuppliers;
+
         }
 
         // GET: api/Supplier/5
         public Supplier Get(int id)
         {
-            string source = @"Data Source=TAYLOR-HP;Initial Catalog=ifs_new;Integrated Security=True;MultipleActiveResultSets=true";
-            SqlConnection con = new SqlConnection(source);
-            con.Open();
-
-            SqlCommand suppliers = new SqlCommand("SELECT * FROM suppliers WHERE id = " + id, con);
-            suppliers.CommandTimeout = 0;
-            SqlDataReader suppliersReader = suppliers.ExecuteReader();
-
-            Supplier item = new Supplier();
-            while (suppliersReader.Read())
+            Supplier returnSupplier = new Supplier();
+            using (var db = new EModelsContext())
             {
+                var eSupplier = db.suppliers.Where(sup => sup.id.Equals(id)).Single();
+                returnSupplier.id = eSupplier.id;
+                returnSupplier.name = eSupplier.name;
 
-                //fill in what we have from initial SQL call
-                item.id = (int)suppliersReader["id"];
-                item.name = (string)suppliersReader["name"];
             }
-
-            return item;
+            return returnSupplier;
         }
 
         // POST: api/Supplier
         public void Post([FromBody]Supplier data)
         {
-            string source = @"Data Source=TAYLOR-HP;Initial Catalog=ifs_new;Integrated Security=True;MultipleActiveResultSets=true";
-            SqlConnection con = new SqlConnection(source);
-            con.Open();
+            using (var db = new EModelsContext())
+            {
+                supplier supplier = new supplier{
+                    name = data.name
+                };
+                db.suppliers.Add(supplier);
+                db.SaveChanges();
+            }
 
-            SqlCommand newSupplier = new SqlCommand(@"INSERT INTO suppliers (name) VALUES (@name)", con);
-            newSupplier.Parameters.AddWithValue("@name", data.name);
-
-            newSupplier.ExecuteScalar();
         }
 
         // PUT: api/Supplier/5
         public void Put(int id, [FromBody]Supplier data)
         {
-            string source = @"Data Source=TAYLOR-HP;Initial Catalog=ifs_new;Integrated Security=True;MultipleActiveResultSets=true";
-            SqlConnection con = new SqlConnection(source);
-            con.Open();
-
-            SqlCommand updateSupplier = new SqlCommand(@"UPDATE suppliers SET name = @name WHERE id = @id", con);
-            updateSupplier.Parameters.AddWithValue("@name", data.name);
-            updateSupplier.Parameters.AddWithValue("@id", data.id);
-
-            updateSupplier.ExecuteScalar();
+            using (var db = new EModelsContext())
+            {
+                var eSupplier = db.suppliers.Where(sup => sup.id.Equals(id)).SingleOrDefault();
+                if (eSupplier != null)
+                {
+                    eSupplier.name = data.name;
+                    db.SaveChanges();
+                }     
+            }
         }
 
         // DELETE: api/Supplier/5
         public void Delete(int id)
         {
-            string source = @"Data Source=TAYLOR-HP;Initial Catalog=ifs_new;Integrated Security=True;MultipleActiveResultSets=true";
-            SqlConnection con = new SqlConnection(source);
-            con.Open();
-
-            SqlCommand deleteSupplier = new SqlCommand(@"DELETE FROM suppliers WHERE id = @id", con);
-            deleteSupplier.Parameters.AddWithValue("@id", id);
-
-            deleteSupplier.ExecuteScalar();
+            using (var db = new EModelsContext())
+            {
+                var eSupplier = db.suppliers.Where(sup => sup.id.Equals(id)).SingleOrDefault();
+                if (eSupplier != null)
+                {
+                    db.suppliers.Remove(eSupplier);
+                    db.SaveChanges();
+                }
+            }
         }
     }
 }
