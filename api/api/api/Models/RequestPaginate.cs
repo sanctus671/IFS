@@ -12,6 +12,7 @@ namespace api.Models
             this.items = new List<Request>();
         }
         public int count { get; set; }
+        public User user { get; set; }
         public List<Request> items { get; set; }
 
     }

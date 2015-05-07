@@ -49,6 +49,28 @@ namespace api.Controllers
 
 
                 }
+                else if (type.Equals("permissions"))
+                {
+                    //an array of strings of all rooms in the rooms table
+                    var result = db.sharepoint_permissions.ToList();
+                    foreach (var ePermission in result)
+                    {
+                        items.Add(ePermission.type);
+                    }
+
+
+                }
+                else if (type.Equals("groups"))
+                {
+                    //an array of strings of all rooms in the rooms table
+                    var result = db.sharepoint_usergroups.ToList();
+                    foreach (var eGroup in result)
+                    {
+                        items.Add(eGroup.name);
+                    }
+
+
+                }
             }
             return items;
 

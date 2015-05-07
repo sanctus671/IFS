@@ -10,7 +10,8 @@ namespace api.Models
         public int id { get; set; }
         public string status { get; set; }
         public List<Status> statusArray { get; set; }
-        public DateTime date { get; set; }
+        public DateTime? date { get; set; }
+        public string userCode { get; set; }
         public string name { get; set; }
         public string phone { get; set; }
         public string email { get; set; }
@@ -25,8 +26,9 @@ namespace api.Models
         public string cas { get; set; }
         public string accountNumber { get; set; }
         public string supplier { get; set; }
-        public DateTime dateSupplied { get; set; }
+        public DateTime? dateSupplied { get; set; }
         public string adminName { get; set; }
+        public string adminUserCode { get; set; }
         public decimal cost { get; set; }
         public string adminNotes { get; set; }
         public string analysisCode { get; set; }

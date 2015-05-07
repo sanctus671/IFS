@@ -17,7 +17,7 @@
                       </tr>
                   </thead>  
                   <tbody>
-                <tr dir-paginate="request in requests | orderBy:orderByField:sortReverse | itemsPerPage: pageSize | filter:q" current-page="currentPage" ng-if="request.filtered !== 1">
+                <tr dir-paginate="request in requests | orderBy:orderByField:sortReverse | itemsPerPage: pageSize | filter:q" current-page="currentPage">
                     <td><a href="#/standardview/{{request.id}}" class="btn-link" title="View all details for this request">{{request.id}}</a></td>
                     <td>{{request.date | date:'dd/MM/yyyy'}}</td>
                     <td>{{request.itemDescription}}</td>

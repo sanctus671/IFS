@@ -1,0 +1,92 @@
+
+    <div class="modal-content">
+      <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true" ng-click="cancel()">×</button>
+            <h2 style="text-align: center;">Create New User</h2>
+      </div>
+        <form class="form-horizontal" ng-submit="insertUser();">
+    <div class="modal-body">    
+        <div style="margin: 0 auto;">
+
+             <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label">User Code:</label>
+                </div>
+                <div class="col-md-8">
+                    <input type="text"  ng-model="userdata.userCode" class="form-control create-name" placeholder="User Code" required>
+                </div> 
+            </div>
+            
+            
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label">Name:</label>
+                </div>
+                <div class="col-md-8">
+                    <input type="text"  ng-model="userdata.name" class="form-control create-name" placeholder="Name" required>
+                </div> 
+            </div>
+            
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label">Email:</label>
+                </div>
+                <div class="col-md-8">
+                    <input type="text"  ng-model="userdata.email" class="form-control create-name" placeholder="Email" required>
+                </div> 
+            </div>
+            
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label">Phone:</label>
+                </div>
+                <div class="col-md-8">
+                    <input type="text"  ng-model="userdata.phone" class="form-control create-name" placeholder="Phone" required>
+                </div> 
+                
+            </div>
+            
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label">Permission:</label>
+                </div>
+                <div class="col-md-8">
+                    <select class="form-control" id="permission" ng-model="userdata.permission" required>
+                        <option value="" disabled selected>Select Permission</option>
+                        <option ng-repeat="permissionType in permissionTypes">{{permissionType}}</option>
+                    </select>
+                </div> 
+            </div>
+            
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label">Group:</label>
+                </div>
+                <div class="col-md-8">
+                    <select class="form-control" id="permission" ng-model="userdata.group" required>
+                        <option value="" disabled selected>Select Group</option>
+                        <option ng-repeat="groupName in groupNames">{{groupName}}</option>
+                    </select>
+                </div>                 
+            </div> 
+
+  
+            
+            </div>
+    </div>                
+            
+            
+        
+
+
+
+
+        <div class="modal-footer">
+            <button class="btn btn-primary" type="submit" ng-click="open = false">Add User</button>
+            <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+        </div>
+       
+
+ </form>
+        
+    </div>

@@ -1,0 +1,65 @@
+﻿<div class="requests view">
+    <div class="container">
+          <div class="panel panel-default">
+            <div class="panel-body">
+
+              <table class="table table-hover">
+
+                  <thead>
+                      <tr>
+                          <th style="border-bottom:none;width:10%"><a href="" ng-click="changeOrder('id')">User ID <span ng-show="orderByField === 'id'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
+                            <th style="border-bottom:none;width:10%"><a href="" ng-click="changeOrder('userCode')">User Code <span ng-show="orderByField === 'userCode'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>                          
+                          <th style="border-bottom:none;width:20%"><a href="" ng-click="changeOrder('name')">Name <span ng-show="orderByField === 'name'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
+                          <th style="border-bottom:none;width:15%"><a href="" ng-click="changeOrder('email')">Email <span ng-show="orderByField === 'email'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
+                          <th style="border-bottom:none;width:15%"><a href="" ng-click="changeOrder('phone')">Phone <span ng-show="orderByField === 'phone'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
+                          <th style="border-bottom:none;width:10%"><a href="" ng-click="changeOrder('permission')">Permission <span ng-show="orderByField === 'permission'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
+                          <th style="border-bottom:none;width:10%"><a href="" ng-click="changeOrder('group')">Group <span ng-show="orderByField === 'group'"><span ng-show="!sortReverse"><i class="fa fa-caret-up"></i></span><span ng-show="sortReverse"><i class="fa fa-caret-down"></i></span></span></a></th>
+                          
+                          <th style="border-bottom:none;width:10%;"><a href="" class="btn btn-default" ng-controller="ModalCtrl" ng-click="openUser('lg',0)" style="float:right;"><i class="fa fa-file"></i> New User</a></th>
+                      </tr>
+                  </thead>  
+                  <tbody>
+                <tr dir-paginate="user in users | orderBy:orderByField:sortReverse | itemsPerPage: pageSize | filter:q" current-page="currentPage">
+                    <td>{{user.id}}</td>
+                    <td>{{user.userCode}}</td>
+                    <td>{{user.name}}</td>
+                    <td>{{user.email}}</td>
+                    <td>{{user.phone}}</td>
+                    <td>{{user.permission}}</td>
+                    <td>{{user.group}}</td>
+
+                    <td>
+                        <div class="other-options" style="float:right;">
+                        <button class="btn btn-default " ng-controller="ModalCtrl" ng-click="openEditUser('lg',user.id)" title="Edit user"><i class="fa fa-pencil-square-o"></i></button> 
+                        <button class="btn btn-default" ng-controller="ModalCtrl" ng-click="confirmDeleteUser('sm',user.id)"  title="Delete user"><i class="fa fa-times"></i></button>
+                        </div>
+                    </td>
+                        
+
+                
+                
+                
+                </tr>
+              </tbody>
+                
+             </table>
+            </div>
+          </div>        
+        
+        <dir-pagination-controls boundary-links="true" on-page-change="pageChangeHandler(newPageNumber)" template-url="app/directives/pagination/dirPagination.tpl.html"></dir-pagination-controls>
+        <div class="pagination-options" style="display:inline; float:right; margin-top:25px;">
+
+            <label for="search">items per page:</label>
+            <a href="" ng-click="changePageSize('10')">10</a> | <a href="" ng-click="changePageSize('25')">25</a> | <a href="" ng-click="changePageSize('50')">50</a> | <a href="" ng-click="changePageSize('100')">100</a> | <a href="" ng-click="changePageSize('200')">200</a>
+
+        </div>
+
+    </div>
+</div>
+
+ 
+<script>
+    $('.users').addClass('active');
+    $('.myorders').removeClass('active');
+        
+</script>

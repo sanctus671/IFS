@@ -23,6 +23,9 @@ namespace api.EModels
         public int? permissionid { get; set; }
 
         [StringLength(255)]
+        public string user_code { get; set; }
+
+        [StringLength(255)]
         public string name { get; set; }
 
         [StringLength(255)]

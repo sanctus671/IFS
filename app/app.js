@@ -85,7 +85,24 @@ app.config(function ($routeProvider) {
             {
                 controller: 'CodeViewController',
                 templateUrl: 'app/partials/adminaccountantcodesview.html'
-            })            
+            })
+        //for system admin user    
+        .when('/systemadmin',
+            {
+                controller: 'MainController',
+                templateUrl: 'app/partials/systemadmin.html'
+            })
+        //view for system admin user seeing request
+        .when('/systemadminview/:reqID',
+            {
+                controller: 'MainViewController',
+                templateUrl: 'app/partials/systemadminview.html'
+            })      
+        .when('/systemadminusers',
+            {
+                controller: 'UserController',
+                templateUrl: 'app/partials/systemadminusers.html'
+            })             
             
         //default to standard
         .otherwise({ redirectTo: '/standard' });

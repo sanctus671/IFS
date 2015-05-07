@@ -6,23 +6,20 @@ app.controller('MainController', function ($scope, $rootScope, requestsService,$
 
     function init() {
         
-        $scope.user = requestsService.getUser()
-        $scope.permissions = $scope.user.permissions;
+        $scope.user = {
+            name: "",
+            phone: "",
+            email: "",
+            permission: "standard",
+            userCode: ""
+            
+        }
+        
+        $scope.permissions = "standard";
         $scope.orderByField = "date";
         //check we the correct page is loaded based on the users permissions
-        if ($scope.permissions  === 'standard' && $location.path().indexOf("standard") === -1){
-            document.location.href='#/standard/';
-        }        
-        else if ($scope.permissions  === 'manager' && $location.path().indexOf("manager") === -1){
-            document.location.href='#/manager/';
-        }
-        else if ($scope.permissions  === 'accountant' && $location.path().indexOf("accountant") === -1){
-            $scope.orderByField = "dateSupplied"
-            document.location.href='#/accountant/';
-        }
-        else if ($scope.permissions  === 'admin' && $location.path().indexOf("admin") === -1){
-            document.location.href='#/admin/';
-        }
+
+       
 
         
         
@@ -30,6 +27,7 @@ app.controller('MainController', function ($scope, $rootScope, requestsService,$
         $scope.pageSize = 10;  
         $scope.totalRequests = 0;
         $scope.searchString = "";
+        $scope.requests = [];
         $scope.getPaginatedRequests();
         $scope.pagination = {
             current: 1
@@ -70,10 +68,55 @@ app.controller('MainController', function ($scope, $rootScope, requestsService,$
         setTimeout(function(){        
         promise.then(function(data){
             $scope.requests = data.items;
+            for (var index in $scope.requests){
+                if ($scope.requests[index]["name"].length < 1 && $scope.requests[index]["userCode"].length > 0){
+                    //get user data for this user code
+                    var retrievedUser = { //TODO: RETRIEVE EXTERNALLY
+                        name : "User retrieved from elsewhere",
+                        email : "test@massey.ac.nz",
+                        phone : "66666666666666666",
+                        userCode : "0",
+                        permission : "standard",
+                        permissionid : 1, //1 = standard, 2 = manager, 3,4 = admin
+                        groupid : null, //the last 3 properties only set if the user is a manager
+                        group : null, //group name
+                        groupUsers : null //list of strings with all user codes contained in their group                        
+                    };
+                    $scope.requests[index]["name"] = retrievedUser.name;
+                    $scope.requests[index]["email"] = retrievedUser.email;
+                    $scope.requests[index]["phone"] = retrievedUser.phone;
+                    $scope.requests[index]["userCode"] = retrievedUser.userCode;
+                    
+                }
+            }            
             $scope.totalRequests = data.count;
+            $scope.user = data.user;
+            $scope.setPath($scope.user.permission);   
             $rootScope.$broadcast('requestsChanged',data.items);
         }); 
         },250);           
+    }
+    
+    $scope.setPath = function(permission){
+        $scope.permissions = permission;
+        if (permission  === 'standard' && $location.path().indexOf("standard") === -1){
+            document.location.href='#/standard/';
+        }        
+        else if (permission  === 'manager' && $location.path().indexOf("manager") === -1){
+            document.location.href='#/manager/';
+        }
+        else if (permission  === 'accountant' && $location.path().indexOf("accountant") === -1){
+            $scope.orderByField = "dateSupplied"
+            document.location.href='#/accountant/';
+        }
+        else if (permission  === 'systemadmin' && $location.path().indexOf("systemadmin") === -1){
+            document.location.href='#/systemadmin/';
+        }         
+        else if (permission  === 'admin' && $location.path().indexOf("admin") === -1){
+            document.location.href='#/admin/';
+        }
+        
+        
     }
     
     
@@ -100,6 +143,27 @@ app.controller('MainController', function ($scope, $rootScope, requestsService,$
         setTimeout(function(){        
         promise.then(function(data){
             $scope.requests = data.items;
+            for (var index in $scope.requests){
+                if ($scope.requests[index]["name"].length < 1 && $scope.requests[index]["userCode"].length > 0){
+                    //get user data for this user code
+                    var retrievedUser = { //TODO: RETRIEVE EXTERNALLY
+                        name : "User retrieved from elsewhere",
+                        email : "test@massey.ac.nz",
+                        phone : "66666666666666666",
+                        userCode : "0",
+                        permission : "standard",
+                        permissionid : 1, //1 = standard, 2 = manager, 3,4 = admin
+                        groupid : null, //the last 3 properties only set if the user is a manager
+                        group : null, //group name
+                        groupUsers : null //list of strings with all user codes contained in their group                        
+                    };
+                    $scope.requests[index]["name"] = retrievedUser.name;
+                    $scope.requests[index]["email"] = retrievedUser.email;
+                    $scope.requests[index]["phone"] = retrievedUser.phone;
+                    $scope.requests[index]["userCode"] = retrievedUser.userCode;
+                    
+                }
+            }            
             $scope.totalRequests = data.count;
             $rootScope.$broadcast('requestsChanged',data.items);
         }); 
@@ -111,6 +175,27 @@ app.controller('MainController', function ($scope, $rootScope, requestsService,$
         
         promise.then(function(data){
             $scope.requests = data.items;
+            for (var index in $scope.requests){ //TODO: RETRIEVE EXTERNALLY
+                if ($scope.requests[index]["name"].length < 1 && $scope.requests[index]["userCode"].length > 0){
+                    //get user data for this user code
+                    var retrievedUser = {
+                        name : "User retrieved from elsewhere",
+                        email : "test@massey.ac.nz",
+                        phone : "66666666666666666",
+                        userCode : "0",
+                        permission : "standard",
+                        permissionid : 1, //1 = standard, 2 = manager, 3,4 = admin
+                        groupid : null, //the last 3 properties only set if the user is a manager
+                        group : null, //group name
+                        groupUsers : null //list of strings with all user codes contained in their group                        
+                    };
+                    $scope.requests[index]["name"] = retrievedUser.name;
+                    $scope.requests[index]["email"] = retrievedUser.email;
+                    $scope.requests[index]["phone"] = retrievedUser.phone;
+                    $scope.requests[index]["userCode"] = retrievedUser.userCode;
+                    
+                }
+            }            
             $scope.totalRequests = data.count;
             $rootScope.$broadcast('requestsChanged',data.items);
         
@@ -127,7 +212,8 @@ app.controller('MainController', function ($scope, $rootScope, requestsService,$
         
   };  
   
-  $rootScope.$on('requestsChanged', function (event, data){
+  $rootScope.$on('requestsChanged', function (event, data){ 
+      console.log(data);
       $scope.requests = data;
   });
   
@@ -138,7 +224,7 @@ app.controller('MainController', function ($scope, $rootScope, requestsService,$
 
 app.controller('MainViewController', function ($scope, $rootScope, $routeParams, requestsService,$location) {
     
-    $scope.permissions = requestsService.getUser().permissions;
+    $scope.permissions = requestsService.getCurrentUser().permissions;
 
     //check we the correct page is loaded based on the users permissions
 
@@ -172,7 +258,26 @@ app.controller('MainViewController', function ($scope, $rootScope, $routeParams,
  
             var promise = requestsService.getRequest($scope.requestID);
                 promise.then(function(data){
-                $scope.request = data; 
+                $scope.request = data;
+                if ($scope.request.name.length < 1 && $scope.request.userCode.length > 0){
+                    //get user data for this user code
+                    var retrievedUser = { //TODO: RETRIEVE EXTERNALLY
+                        name : "User retrieved from elsewhere",
+                        email : "test@massey.ac.nz",
+                        phone : "66666666666666666",
+                        userCode : "0",
+                        permission : "standard",
+                        permissionid : 1, //1 = standard, 2 = manager, 3,4 = admin
+                        groupid : null, //the last 3 properties only set if the user is a manager
+                        group : null, //group name
+                        groupUsers : null //list of strings with all user codes contained in their group                        
+                    };
+                    $scope.request.name = retrievedUser.name;
+                    $scope.request.email = retrievedUser.email;
+                    $scope.request.phone = retrievedUser.phone;
+                    $scope.request.userCode = retrievedUser.userCode;
+
+                                }                
             });  
         }
     
@@ -216,7 +321,10 @@ app.controller('ModalCtrl', function ($scope, $modal, $log) {
         },
         code: function() {
             return false;
-        }
+        },
+        userdata: function() {
+            return false;
+        } 
       }
     });
 
@@ -245,7 +353,10 @@ app.controller('ModalCtrl', function ($scope, $modal, $log) {
         },
         code: function() {
             return false;
-        }
+        },
+        userdata: function() {
+            return false;
+        } 
       }
     });
 
@@ -274,7 +385,10 @@ app.controller('ModalCtrl', function ($scope, $modal, $log) {
         },
         code: function() {
             return false;
-        }
+        },
+        userdata: function() {
+            return false;
+        } 
       }
     });
 
@@ -307,7 +421,10 @@ app.controller('ModalCtrl', function ($scope, $modal, $log) {
         },
         code: function() {
             return false;
-        }        
+        },
+        userdata: function() {
+            return false;
+        }         
       }
     });
 
@@ -337,7 +454,10 @@ app.controller('ModalCtrl', function ($scope, $modal, $log) {
         },
         code: function() {
             return false;
-        }         
+        },
+        userdata: function() {
+            return false;
+        }          
       }
     });
 
@@ -366,7 +486,10 @@ app.controller('ModalCtrl', function ($scope, $modal, $log) {
         },
         code: function() {
             return false;
-        }         
+        },
+        userdata: function() {
+            return false;
+        }          
       }
     });
 
@@ -399,7 +522,10 @@ app.controller('ModalCtrl', function ($scope, $modal, $log) {
         },
         code: function() {
             return false;
-        }        
+        },
+        userdata: function() {
+            return false;
+        }         
       }
     });
 
@@ -428,7 +554,10 @@ app.controller('ModalCtrl', function ($scope, $modal, $log) {
         } ,
         code: function() {
             return true;
-        }         
+        },
+        userdata: function() {
+            return false;
+        }          
       }
     });
 
@@ -457,7 +586,10 @@ app.controller('ModalCtrl', function ($scope, $modal, $log) {
         } ,
         code: function() {
             return true;
-        }         
+        },
+        userdata: function() {
+            return false;
+        }          
       }
     });
 
@@ -490,6 +622,73 @@ app.controller('ModalCtrl', function ($scope, $modal, $log) {
         } ,
         code: function() {
             return true;
+        },
+        userdata: function() {
+            return false;
+        }         
+      }
+    });
+
+    modalInstance.result.then(function (selectedItem) {
+      $scope.selected = selectedItem;
+    }, function () {
+      //$log.info('Modal dismissed at: ' + new Date());
+    });
+  };  
+  
+  $scope.openUser = function (size, id) {
+
+    var modalInstance = $modal.open({
+      templateUrl: 'app/partials/createuser.html',
+      controller: 'ModalInstanceCtrl',
+      size: size,
+      resolve: {
+        items: function () {
+          return $scope.items;
+        },
+        id: function() {
+            return id;
+        },
+        supplier: function() {
+            return false;
+        } ,
+        code: function() {
+            return false;
+        },
+        userdata: function() {
+            return true;
+        }         
+      }
+    });
+
+    modalInstance.result.then(function (selectedItem) {
+      $scope.selected = selectedItem;
+    }, function () {
+      //$log.info('Modal dismissed at: ' + new Date());
+    });
+  };  
+  
+  $scope.openEditUser = function (size,id) {
+      
+    var modalInstance = $modal.open({
+      templateUrl: 'app/partials/edituser.html',
+      controller: 'ModalInstanceCtrl',
+      size: size,
+      resolve: {
+        items: function () {
+          return $scope.items;
+        },
+        id: function() {
+            return id;
+        },
+        supplier: function() {
+            return false;
+        } ,
+        code: function() {
+            return false;
+        },
+        userdata: function() {
+            return true;
         }        
       }
     });
@@ -499,14 +698,50 @@ app.controller('ModalCtrl', function ($scope, $modal, $log) {
     }, function () {
       //$log.info('Modal dismissed at: ' + new Date());
     });
-  };    
+  };   
+  
+  
+  
+  
+    
+  $scope.confirmDeleteUser = function (size,id) {
+      
+    var modalInstance = $modal.open({
+      templateUrl: 'app/partials/deleteuser.html',
+      controller: 'ModalInstanceCtrl',
+      size: size,
+      resolve: {
+        items: function () {
+          return $scope.items;
+        },
+        id: function() {
+            return id;
+        },
+        supplier: function() {
+            return false;
+        } ,
+        code: function() {
+            return false;
+        },
+        userdata: function() {
+            return true;
+        }        
+      }
+    });
+
+    modalInstance.result.then(function (selectedItem) {
+      $scope.selected = selectedItem;
+    }, function () {
+      //$log.info('Modal dismissed at: ' + new Date());
+    });
+    };
 });
 
 
 
-app.controller('ModalInstanceCtrl', function ($scope, $rootScope, $modalInstance, $compile, items, requestsService, id, supplier, code) {
+app.controller('ModalInstanceCtrl', function ($scope, $rootScope, $modalInstance, $compile, items, requestsService, id, supplier, code, userdata) {
   $scope.id = id;
-  $scope.user = requestsService.getUser();
+  $scope.user = requestsService.getCurrentUser();
   $scope.permissions = $scope.user.permissions;
 
   var promise = requestsService.getTooltips();
@@ -519,10 +754,15 @@ app.controller('ModalInstanceCtrl', function ($scope, $rootScope, $modalInstance
     $scope.suppliers = data;
    });
   
-  var promise = requestsService.getTooltips();
+  var promise = requestsService.getPermissionTypes();
       promise.then(function(data){
-      $scope.tooltips = data; 
+      $scope.permissionTypes = data; 
     });
+    
+  var promise = requestsService.getGroupNames();
+      promise.then(function(data){
+      $scope.groupNames = data; 
+    });    
     
   setTimeout(function(){$('[data-toggle="tooltip"]').tooltip({'placement': 'top'});}, 500);
   
@@ -546,6 +786,14 @@ app.controller('ModalInstanceCtrl', function ($scope, $rootScope, $modalInstance
       $scope.code = data; 
         });
     }
+    
+  else if (userdata && id > 0) {
+      
+      var promise = requestsService.getUser(id);
+      promise.then(function(data){
+      $scope.userdata = data; 
+        });
+    }    
 
   else if (id > 0){
 
@@ -813,7 +1061,26 @@ app.controller('ModalInstanceCtrl', function ($scope, $rootScope, $modalInstance
             var codes = requestsService.deleteAnalysisCode(id);    
             $rootScope.$broadcast('codesChanged', codes);
             $scope.ok();            
-        };         
+        };   
+        
+        $scope.insertUser = function(){
+            var codes = requestsService.insertUser($scope.userdata);
+            $rootScope.$broadcast('usersChanged', codes);
+            $scope.code = {};            
+            $scope.ok();            
+        };
+        
+        $scope.editUser = function(){
+            var codes = requestsService.updateUser(id,$scope.userdata);
+            $rootScope.$broadcast('usersChanged', codes);
+            $scope.code = {};            
+            $scope.ok();              
+        };
+        $scope.deleteUser = function(){
+            var codes = requestsService.deleteUser(id);    
+            $rootScope.$broadcast('usersChanged', codes);
+            $scope.ok();            
+        };          
 });
 
 
@@ -910,7 +1177,7 @@ app.controller('CodeController', function ($scope, $rootScope, requestsService,$
         $scope.pageSize = 10;        
         $scope.orderByField = "id";
         $scope.sortReverse = true;
-        $scope.user = requestsService.getUser();
+        $scope.user = requestsService.getCurrentUser();
         $scope.permissions = $scope.user.permissions;     
         
         setTimeout(function(){
@@ -970,4 +1237,50 @@ app.controller('CodeViewController', function ($scope, $routeParams, requestsSer
         
         
     }    
+});
+
+
+app.controller('UserController', function ($scope, $rootScope, requestsService,$location) {
+    
+
+    init();
+    
+    function init(){
+        $scope.currentPage = 1;
+        $scope.pageSize = 10;        
+        $scope.orderByField = "id";
+        $scope.sortReverse = true;
+        $scope.user = requestsService.getCurrentUser();
+        $scope.permissions = $scope.user.permissions;     
+        
+        setTimeout(function(){
+        var promise = requestsService.getUsers();
+            promise.then(function(data){
+            $scope.users = data;
+        });
+        },250);        
+        
+     $rootScope.$on('usersChanged', function(event, args) {
+        $scope.users = args;
+    });         
+
+      
+    }
+    
+
+    
+    $scope.changeOrder = function (header) {
+        $scope.orderByField = header; 
+        $scope.sortReverse = !$scope.sortReverse;
+
+    };
+    
+    $scope.changePageSize = function (size) {
+        
+        $scope.pageSize = size; 
+
+
+    };    
+    
+
 });

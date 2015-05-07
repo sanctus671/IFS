@@ -30,6 +30,7 @@
           <li class="myorders active"><a href="#/{{permissions}}" title="View all order history"><i class="fa fa-list"></i> <span ng-show="permissions === 'standard'">My </span>Requests</a></li>
         <li class="suppliers" ng-show="permissions === 'admin'"><a href="#/{{permissions}}suppliers" title="View and change supplier details"><i class="fa fa-truck"></i> Suppliers</a></li>
         <li class="codes" ng-show="permissions === 'admin' || permissions === 'accountant'"><a href="#/{{permissions}}codes" title="View and change analysis codes"><i class="fa fa-credit-card"></i> Analysis Codes</a></li>
+        <li class="users" ng-show="permissions === 'systemadmin'"><a href="#/{{permissions}}users" title="View and change user details"><i class="fa fa-users"></i> Users</a></li>
         <a href="#" ng-click="change();" class="change" style="display:none;">&nbsp;</a>
 
       </ul>

@@ -12,33 +12,38 @@ var suppliers = [];
 var supplier = [];
 var analysisCodes = [];
 var analysisCode = [];
+var users = []; //for system admin
+var user = []; //for system admin
+var currentUser = []; //is the current active user
 var descriptions = [];
 var codes = [];
 var rooms = [];
 var tooltips = [];
+var permissionTypes = [];
+var groupNames = [];
 
 var filterString = "";
 var searchString = "";
 
     
-/* USER FUNCTIONS */         
-    this.getUser = function(){
-        return user;
-    };
-    
-    this.getUserGroup = function(id){
-        for (var i = 0; i < userGroups.length; i++) {
-            if (userGroups[i].id === id) {
-                return userGroups[i];
-            }
+/* CURRENT USER FUNCTIONS */         
+    this.getCurrentUser = function(){
+        if (currentUser.length > 0){
+            return currentUser;
         }
-        return null;
-    };    
-    
-    this.changePermissions = function(permission){
-        user.permissions = permission;
+        var userDefer = $q.defer();
+        $http.get(url + "MockUser?userCode=1").then(function(response){
+            userDefer.resolve(response.data);
+        });            
+        var  promise = userDefer.promise;
+        promise.then(function(data){
+            currentUser = data;
+        });            
+        return promise;
     };
-/* END USER FUNCTIONS */ 
+      
+    
+/* END CURRENT USER FUNCTIONS */ 
     
 
 
@@ -79,6 +84,30 @@ var searchString = "";
         });            
         return promise;
     };
+    
+    this.getPermissionTypes = function(){
+        var permissionTypesDefer = $q.defer();
+        $http.get(url + "AutoComplete?type=permissions").then(function(response){
+            permissionTypesDefer.resolve(response.data);
+        });            
+        var  promise = permissionTypesDefer.promise;
+        promise.then(function(data){
+            permissionTypes = data;
+        });            
+        return promise;
+    };
+    
+    this.getGroupNames = function(){
+        var groupNamesDefer = $q.defer();
+        $http.get(url + "AutoComplete?type=groups").then(function(response){
+            groupNamesDefer.resolve(response.data);
+        });            
+        var  promise = groupNamesDefer.promise;
+        promise.then(function(data){
+            groupNames = data;
+        });            
+        return promise;
+    };    
     
      
     
@@ -241,43 +270,127 @@ var searchString = "";
     
 /* END SUPPLIERS FUNCTIONS */      
     
+/* USERS FUNCTIONS */    
+    this.getUsers = function(){
+        var usersDefer = $q.defer();    
+        $http.get(url + "User").then(function(response){
+            usersDefer.resolve(response.data);
+        });            
+        var  promise = usersDefer.promise;
+        promise.then(function(data){
+            users = data;
+        });            
+        return promise;        
+    };
     
+     this.getUser = function (id) {
+        var userDefer = $q.defer();
+        $http.get(url + "User/" + id).then(function(response){
+
+            userDefer.resolve(response.data);
+            
+        });            
+        var  promise = userDefer.promise;
+        promise.then(function(data){
+
+            user = data;
+
+
+        });            
+        return promise;
+    };   
+    
+    
+    this.insertUser = function(data){
+        var topID = 1;
+        if (users.length > 0){
+            topID = users[0].id + 1;
+        }
+        
+        data["id"] = topID;
+        $http.post(url + "User", data).then(function(){
+
+        });  
+        users.push(data);
+        return users;
+
+        
+    };     
+    this.updateUser = function(id,data){
+        for (var i = 0; i < users.length; i++) {
+            if (users[i].id === id) {
+                for (var x in data){
+                    users[i][x] = data[x];
+                }
+                
+                $http.put(url + "User/" + id, users[i]);
+                return users;
+            }
+        }
+    }; 
+    
+    this.deleteUser = function(id){
+        for (var i = users.length - 1; i >= 0; i--) {
+            if (users[i].id === id) {
+                users.splice(i, 1);
+                break;
+            }
+        }
+        $http.delete(url + "User/" + id);
+        return users;
+    };     
+    
+/* END USERS FUNCTIONS */  
+
+
 /* REQUESTS FUNCTIONS */   
 
     this.getRequests = function (offset, limit) {
         var requestsDefer = $q.defer();
-        if (user.permissions === "admin" || user.permissions === "accountant"){
-            //get all requests
+        var urlString = url + "Request?offset=" + offset + "&limit=" + limit;
+        if (searchString !== "" && filterString !== ""){
+            urlString = urlString + "&search=" + searchString + "&filterString=" + filterString;    
+        }
+        else if (searchString !== ""){
+            urlString = urlString + "&search=" + searchString;  
+        }  
+        else if(filterString !== ""){
+            urlString = urlString + "&filterString=" + filterString;  
+        }
 
-            var urlString = url + "Request?offset=" + offset + "&limit=" + limit;
-            if (searchString !== "" && filterString !== ""){
-                urlString = urlString + "&search=" + searchString + "&filterString=" + filterString;    
+        urlString = urlString + "&userCode=" + currentUser.userCode;
+
+        $http.get(urlString).then(function(response){
+            requestsDefer.resolve(response.data);
+        });            
+        var  promise = requestsDefer.promise;
+        promise.then(function(data){
+            requestsLength = data.count;
+            requests = data.items;
+            for (var index in requests){
+                if (requests[index]["name"].length < 1 && requests[index]["userCode"].length > 0){
+                    //get user data for this user code
+                    var retrievedUser = { //TODO: RETRIEVE EXTERNALLY
+                        name : "User retrieved from elsewhere",
+                        email : "test@massey.ac.nz",
+                        phone : "66666666666666666",
+                        userCode : "0",
+                        permission : "standard",
+                        permissionid : 1, //1 = standard, 2 = manager, 3,4 = admin
+                        groupid : null, //the last 3 properties only set if the user is a manager
+                        group : null, //group name
+                        groupUsers : null //list of strings with all user codes contained in their group                        
+                    };
+                    requests[index]["name"] = retrievedUser.name;
+                    requests[index]["email"] = retrievedUser.email;
+                    requests[index]["phone"] = retrievedUser.phone;
+                    requests[index]["userCode"] = retrievedUser.userCode;
+                    
+                }
             }
-            else if (searchString !== ""){
-                urlString = urlString + "&search=" + searchString;  
-            }  
-            else if(filterString !== ""){
-                urlString = urlString + "&filterString=" + filterString;  
-            }
-            
-            $http.get(urlString).then(function(response){
-                requestsDefer.resolve(response.data);
-            });            
-            var  promise = requestsDefer.promise;
-            promise.then(function(data){
-                requestsLength = data.count;
-                requests = data.items;
-            });            
-            return promise;
-        }
-        //TODO    
-        else if (user.permissions === "manager"){
-            //TODO: get requests for users who are managed by this person
-            return requests;
-        }
-        
-        //TODO: get requests for only that user
-        return requests;
+            currentUser = data.user; //sets the current user when retrieving all requests
+        });            
+        return promise;
     };
     
     
@@ -296,12 +409,11 @@ var searchString = "";
         
         data["date"] = new Date();
         
-        data["userid"] = user.id;
-        data["name"] = user.name;
-        data["phone"] = user.phone;
-        data["email"] = user.email;
+        data["userCode"] = currentUser.userCode;
+        data["name"] = currentUser.name; //eventually get rid of these
+        data["phone"] = currentUser.phone; //eventually get rid of these
+        data["email"] = currentUser.email; //eventually get rid of these
         
-
         
         $http.post(url + "Request", data).then(function(){
             
@@ -350,7 +462,25 @@ var searchString = "";
         promise.then(function(data){
 
             request = data;
- 
+             if (request.name.length < 1 && requests.userCode.length > 0){
+                //get user data for this user code
+                var retrievedUser = { //TODO: RETRIEVE EXTERNALLY
+                    name : "User retrieved from elsewhere",
+                    email : "test@massey.ac.nz",
+                    phone : "66666666666666666",
+                    userCode : "0",
+                    permission : "standard",
+                    permissionid : 1, //1 = standard, 2 = manager, 3,4 = admin
+                    groupid : null, //the last 3 properties only set if the user is a manager
+                    group : null, //group name
+                    groupUsers : null //list of strings with all user codes contained in their group                        
+                };
+                request.name = retrievedUser.name;
+                requests.email = retrievedUser.email;
+                requests.phone = retrievedUser.phone;
+                requests.userCode = retrievedUser.userCode;
+
+            }
             //console.log(request.accountNumber.match(/(\d+|[^\d]+)/g));
             
             if (request.dateSupplied === "0001-01-01T00:00:00"){
@@ -386,6 +516,8 @@ var searchString = "";
         var requestsDefer = $q.defer();
         
         var urlString = url + "Request?offset=" + offset + "&limit=" + limit;
+        
+        
         if (searchString !== ""){
             urlString = urlString + "&search=" + searchString + "&filterString=" + filterString;    
         }
@@ -393,7 +525,7 @@ var searchString = "";
             urlString = urlString + "&filterString=" + filterString;  
         }
         
-        
+        urlString = urlString + "&userCode=" + currentUser.userCode;
         $http.get(urlString).then(function(response){
             requestsDefer.resolve(response.data);
         });            
@@ -401,6 +533,27 @@ var searchString = "";
         promise.then(function(data){
             requestsLength = data.count;
             requests = data.items;
+            for (var index in requests){
+                if (requests[index]["name"].length < 1 && requests[index]["userCode"].length > 0){
+                    //get user data for this user code
+                    var retrievedUser = { //TODO: RETRIEVE EXTERNALLY
+                        name : "User retrieved from elsewhere",
+                        email : "test@massey.ac.nz",
+                        phone : "66666666666666666",
+                        userCode : "0",
+                        permission : "standard",
+                        permissionid : 1, //1 = standard, 2 = manager, 3,4 = admin
+                        groupid : null, //the last 3 properties only set if the user is a manager
+                        group : null, //group name
+                        groupUsers : null //list of strings with all user codes contained in their group                        
+                    };
+                    requests[index]["name"] = retrievedUser.name;
+                    requests[index]["email"] = retrievedUser.email;
+                    requests[index]["phone"] = retrievedUser.phone;
+                    requests[index]["userCode"] = retrievedUser.userCode;
+                    
+                }
+            }            
         });            
         return promise;       
 
@@ -420,7 +573,7 @@ var searchString = "";
             urlString = urlString + "&search=" + searchString;  
         }
         
-
+        urlString = urlString + "&userCode=" + currentUser.userCode;
         $http.get(urlString).then(function(response){
             requestsDefer.resolve(response.data);
         });            
@@ -428,6 +581,27 @@ var searchString = "";
         promise.then(function(data){
             requestsLength = data.count;
             requests = data.items;
+            for (var index in requests){
+                if (requests[index]["name"].length < 1 && requests[index]["userCode"].length > 0){
+                    //get user data for this user code
+                    var retrievedUser = { //TODO: RETRIEVE EXTERNALLY
+                        name : "User retrieved from elsewhere",
+                        email : "test@massey.ac.nz",
+                        phone : "66666666666666666",
+                        userCode : "0",
+                        permission : "standard",
+                        permissionid : 1, //1 = standard, 2 = manager, 3,4 = admin
+                        groupid : null, //the last 3 properties only set if the user is a manager
+                        group : null, //group name
+                        groupUsers : null //list of strings with all user codes contained in their group                        
+                    };
+                    requests[index]["name"] = retrievedUser.name;
+                    requests[index]["email"] = retrievedUser.email;
+                    requests[index]["phone"] = retrievedUser.phone;
+                    requests[index]["userCode"] = retrievedUser.userCode;
+                    
+                }
+            }            
         });            
         return promise;        
 
@@ -468,19 +642,10 @@ var searchString = "";
 
 
     //USER DATA (get from sharepoint)
-    var user = {id: 1, name:"John Doe", phone:"1234567", email:"johndoe@massey.ac.nz", permissions:"admin", groupid:2};
+    var currentUser = {id: 1, name:"John Doe", userCode:"1", phone:"1234567", email:"johndoe@massey.ac.nz", permissions:"admin", groupid:2};
 
 
-    //DEFINING USER GROUPS (get from sharepoint)
-    var userGroups = [
-        {
-            id: 1, name:"Toms manager group",users:[1]
 
-        } ,
-        {
-            id: 2, name:"Jims accoutnant group", users:[2]
-
-        }];
 
 
 
